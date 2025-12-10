@@ -4,26 +4,26 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Imantados 2.0</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script defer src="auth.config.js"></script>
-    <script defer src="auth-status.js"></script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/auth.config.js"></script>
+    <script defer src="/auth-status.js"></script>
     <!-- Firebase compat para Firestore -->
     <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
     <!-- Módulo DB local -->
-    <script defer src="firebase-db.js"></script>
-    <script src="main.js" defer></script>
+    <script defer src="/firebase-db.js"></script>
+    <script src="/main.js" defer></script>
   </head>
   <body>
     <!-- Cabeçalho do site com navegação -->
     <header class="site-header" role="banner">
       <div class="header-inner">
-        <a class="brand" href="#home" aria-label="Ir para a página inicial">
-          <img class="logo" src="assets/logo-imantados.png" alt="Imantados" onerror="this.onerror=null; this.src='assets/botao.png'" />
+        <a class="brand" href="/" aria-label="Ir para a página inicial">
+          <img class="logo" src="/assets/logo-imantados.png" alt="Imantados" onerror="this.onerror=null; this.src='/assets/botao.png'" />
         </a>
         <div class="actions">
           <nav class="nav" aria-label="Navegação principal">
-            <a class="nav-link" href="empresa.html">
+            <a class="nav-link" href="/empresa.html">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                 <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 21h18"/>
@@ -35,10 +35,10 @@
               </svg>
               <span>Empresa</span>
             </a>
-            <a class="cta-mural" href="mural.html" aria-label="Mural Imantados">
+            <a class="cta-mural" href="/mural.html" aria-label="Mural Imantados">
               Mural
             </a>
-            <a class="nav-link" href="login.html">
+            <a class="nav-link" href="/login.html">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                 <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="7" r="3"/>
@@ -47,7 +47,7 @@
               </svg>
               <span>Entrar</span>
             </a>
-            <a class="nav-link" href="carrinho.html">
+            <a class="nav-link" href="/carrinho.html">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                 <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M6 6h15l-2 7H8L6 6z"/>
@@ -60,7 +60,7 @@
             </a>
           </nav>
           <div class="cta-group">
-            <a class="cta cta-secondary" href="modelos.html" aria-label="Exemplos">
+            <a class="cta cta-secondary" href="/modelos.html" aria-label="Exemplos">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                 <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="4" y="4" width="7" height="7" rx="1"/>
@@ -78,15 +78,15 @@
 
     <!-- Banner Mural Imantados -->
     <section class="mural-banner" aria-label="Veja o Mural Imantados">
-      <a href="mural.html" class="mural-banner-link">
-        <img src="assets/eles_ja_estao.png" alt="Eles já estão — veja o Mural Imantados" class="mural-banner-img" onerror="this.onerror=null; this.src='assets/botao.png'" />
+      <a href="/mural.html" class="mural-banner-link">
+        <img src="/assets/eles_ja_estao.png" alt="Eles já estão — veja o Mural Imantados" class="mural-banner-img" onerror="this.onerror=null; this.src='/assets/botao.png'" />
       </a>
     </section>
 
     <!-- Balão promocional topo direito -->
     <aside class="promo-bubble has-image" aria-label="Motivação para criar seus ímãs">
       <button class="promo-bubble-close" aria-label="Fechar">×</button>
-      <img class="promo-bubble-img" src="assets/balao.png" alt="Seu momento, sua frase, seu ímã! Personalize agora e veja sua geladeira ganhar vida." onerror="this.onerror=null; this.src='assets/botao.png'" />
+      <img class="promo-bubble-img" src="/assets/balao.png" alt="Seu momento, sua frase, seu ímã! Personalize agora e veja sua geladeira ganhar vida." onerror="this.onerror=null; this.src='/assets/botao.png'" />
     </aside>
 
     <!-- Ações rápidas na lateral esquerda -->
@@ -149,7 +149,7 @@
   
   <!-- Seção de figurinhas do WhatsApp removida conforme solicitado -->
   </body>
-  <script src="cart-count.js" defer></script>
+  <script src="/cart-count.js" defer></script>
   <script>
     // Ao carregar a página, se o balão já foi fechado antes, removê-lo
     document.addEventListener('DOMContentLoaded', function () {
