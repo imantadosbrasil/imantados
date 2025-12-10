@@ -929,6 +929,40 @@ if (fileInput) {
     }
     if (normalized === 'Frases') {
       try {
+        const gh = await fetch('https://api.github.com/repos/imantadosbrasil/imantados/contents/assets/FRASES?ref=main', { headers: { 'Accept': 'application/vnd.github+json' }, cache: 'no-store' });
+        if (gh && gh.ok) {
+          const items = await gh.json();
+          if (Array.isArray(items)) {
+            const allowed = /\.(png|jpg|jpeg|webp|gif)$/i;
+            const files = items.filter(x => x && x.type === 'file' && allowed.test(x.name || '') && x.download_url);
+            if (files.length === 0) { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
+            const seen = new Set();
+            for (const f of files) {
+              const url = f.download_url;
+              const key = String(url || f.name).toLowerCase();
+              if (seen.has(key)) continue; seen.add(key);
+              const card = document.createElement('div');
+              card.className = 'option-card';
+              const img = document.createElement('img');
+              img.src = url;
+              img.alt = f.name || 'Frase';
+              const body = document.createElement('div');
+              body.className = 'option-body';
+              const btn = document.createElement('button');
+              btn.className = 'option-select';
+              btn.type = 'button';
+              btn.textContent = 'Selecionar';
+              btn.addEventListener('click', async () => { await addImageFromUrl(url); try { closeModal(); } catch {} });
+              body.appendChild(btn);
+              card.appendChild(img);
+              card.appendChild(body);
+              modalGrid.appendChild(card);
+            }
+            return;
+          }
+        }
+      } catch {}
+      try {
         const res = await fetch('/api/frases', { cache: 'no-store' });
         if (res && res.ok) {
           const files = await res.json();
@@ -949,10 +983,7 @@ if (fileInput) {
               btn.className = 'option-select';
               btn.type = 'button';
               btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => {
-                await addImageFromUrl(f.url);
-                try { closeModal(); } catch {}
-              });
+              btn.addEventListener('click', async () => { await addImageFromUrl(f.url); try { closeModal(); } catch {} });
               body.appendChild(btn);
               card.appendChild(img);
               card.appendChild(body);
