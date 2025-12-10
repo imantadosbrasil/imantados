@@ -1732,7 +1732,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <header class="modal-header"><h2 class="modal-title">Criar seu Íma no estilo do Instagram</h2><button class="modal-close" type="button">×</button></header>
         <div class="ig-designer">
           <div class="x-preview" style="display:grid;place-items:center;padding:12px;">
-            <div id="igCard" class="x-card ig-card" style="width:65mm;height:90mm;background-image:url('/assets/INSTAGRAM/modelo%20foto%20instagram.svg');background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;border-radius:10px;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,.12);">
+            <div id="igCard" class="x-card ig-card" style="width:65mm;height:90mm;background-image:url('/assets/INSTAGRAM/modelo%20foto%20instagram.svg');background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;border-radius:10px;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,.12);overflow:hidden;">
               <div class="ig-top" style="position:absolute;left:4mm;top:4mm;right:4mm;height:12mm;display:flex;align-items:center;gap:4mm;">
                 <div id="igBadge" class="ig-badge" style="width:12mm;height:12mm;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#9333ea,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:pointer;">Avatar</div>
                 <div style="display:flex;align-items:center;gap:2mm;flex:1;">
@@ -1746,7 +1746,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <div class="menu" aria-label="mais">⋯</div>
                 </div>
               </div>
-              <div id="igPhoto" class="ig-photo" style="position:absolute;left:4.5mm;top:16mm;width:56mm;height:70mm;border-radius:6mm;background:#f97316;display:grid;place-items:center;overflow:hidden;cursor:pointer;">
+              <div id="igPhoto" class="ig-photo" style="position:absolute;left:4.5mm;top:10mm;width:56mm;height:70mm;border-radius:6mm;background:#f97316;display:grid;place-items:center;overflow:hidden;cursor:pointer;">
                 <div style="color:#2f2f2f;font-size:16px;text-align:center;line-height:1.3">foto<br>usuario</div>
               </div>
               <div id="igMessage" class="ig-message" style="position:absolute;left:4mm;right:20mm;bottom:18mm;color:#111;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Mensagem do Cliente aqui....</div>
