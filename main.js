@@ -1733,7 +1733,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="ig-designer">
           <div class="x-preview">
             <div id="igCard" class="x-card ig-card" style="width:65mm;height:90mm;background-image:url('/assets/modelo%20foto%20instagram.png');background-size:cover;background-position:center; position:relative;">
-              <div id="igBadge" class="ig-badge" style="position:absolute;left:6mm;top:6mm;width:12mm;height:12mm;border-radius:50%;overflow:hidden;background:#a78bfa;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;">Bate Foto?</div>
+              <div id="igBadge" class="ig-badge" style="position:absolute;left:6mm;top:6mm;width:12mm;height:12mm;border-radius:50%;overflow:hidden;background:#a78bfa;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.18);">Bate Foto?</div>
               <div id="igPhoto" class="ig-photo" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38mm;height:38mm;border-radius:12px;overflow:hidden;background:#e5e7eb;"></div>
               <div id="igHandle" class="ig-handle" style="position:absolute;left:50%;top:68mm;transform:translateX(-50%);background:rgba(255,255,255,.85);padding:4px 8px;border-radius:10px;font-size:14px;">@nome_usuario</div>
               <div id="igMessage" class="ig-message" style="position:absolute;left:50%;top:74mm;transform:translateX(-50%);background:rgba(255,255,255,.85);padding:6px 10px;border-radius:10px;font-size:14px;max-width:58mm;text-align:center;">Cliente aqui...</div>
@@ -1742,15 +1742,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <form class="x-form" autocomplete="off">
             <input id="inIgHandle" type="text" placeholder="@nome_usuario" value="@nome_usuario">
             <textarea id="inIgMsg" rows="3" placeholder="Cliente aqui...">Cliente aqui...</textarea>
-            <div>
-              <label class="btn btn-light" for="inIgAvatar">Carregar foto do avatar (centro)</label>
-              <input id="inIgAvatar" type="file" accept="image/*" class="visually-hidden">
-            </div>
-            <div>
-              <label class="btn btn-light" for="inIgBadge">Carregar foto do selo (avatar pequeno)</label>
-              <input id="inIgBadge" type="file" accept="image/*" class="visualmente-hidden">
-            </div>
           </form>
+          <div class="upload-actions" style="display:flex;gap:8px;align-items:center;padding:12px 16px;">
+            <input id="inIgBadge" type="file" accept="image/*" class="visually-hidden">
+            <input id="inIgAvatar" type="file" accept="image/*" class="visually-hidden">
+            <label class="btn btn-light" for="inIgBadge">Carregar foto no selo "Bate Foto?"</label>
+            <label class="btn btn-light" for="inIgAvatar">Carregar foto/avatar (centro)</label>
+          </div>
         </div>
         <div class="x-actions">
           <button class="btn btn-light" type="button" id="igCancel">Cancelar</button>
@@ -1786,6 +1784,10 @@ document.addEventListener('DOMContentLoaded', () => {
         bd.innerHTML = `<img src="${url}" alt="selo" style="width:100%;height:100%;object-fit:cover;">`;
       });
     }
+    const bdEl = overlay.querySelector('#igBadge');
+    if (bdEl) { bdEl.addEventListener('click', () => { try { const i = overlay.querySelector('#inIgBadge'); i && i.click(); } catch {} }); }
+    const phEl = overlay.querySelector('#igPhoto');
+    if (phEl) { phEl.addEventListener('click', () => { try { const i = overlay.querySelector('#inIgAvatar'); i && i.click(); } catch {} }); }
     overlay.querySelector('#igAdd').addEventListener('click', async () => {
       try {
         await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
