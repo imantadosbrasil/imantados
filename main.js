@@ -1181,6 +1181,8 @@ if (fileInput) {
   categoriesNav.addEventListener('click', (e) => {
     const a = e.target.closest('.category-btn');
     if (!a) return;
+    const href = a.getAttribute('href') || '';
+    if (href.startsWith('http')) return;
     e.preventDefault();
     const category = a.getAttribute('data-category');
     if (!category) return;
