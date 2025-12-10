@@ -61,6 +61,10 @@
           if (String(data.status).toLowerCase() === 'approved') {
             clearInterval(timer);
             if (pixMsg) { pixMsg.textContent = 'Pagamento aprovado. Seu pedido está confirmado.'; }
+            try {
+              const body = { order, paymentId: id, status: 'approved', folder: 'Pedidos' };
+              await fetch(`${API_BASE}/save-order`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            } catch {}
           } else if (String(data.status).toLowerCase() === 'rejected') {
             clearInterval(timer);
             if (pixMsg) { pixMsg.textContent = 'Pagamento rejeitado. Tente novamente.'; }
