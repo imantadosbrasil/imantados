@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carrinho | Imantados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header" role="banner">
+      <div class="header-inner">
+        <a class="brand" href="index.html" aria-label="Ir para a página inicial">
+          <img class="logo" src="assets/logo-imantados.png" alt="Imantados" onerror="this.onerror=null; this.src='assets/botao.png'" />
+        </a>
+        <div class="actions">
+          <nav class="nav" aria-label="Navegação principal">
+            <a class="nav-link" href="empresa.html">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21h18"/>
+                  <path d="M6 21V7h6v14"/>
+                  <path d="M14 21V11h6v10"/>
+                  <path d="M8 9h2M8 13h2M8 17h2"/>
+                  <path d="M16 13h2M16 17h2"/>
+                </g>
+              </svg>
+              <span>Empresa</span>
+            </a>
+            <a class="cta-mural" href="mural.html" aria-label="Mural Imantados">Mural</a>
+            <a class="nav-link" href="login.html">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="7" r="3"/>
+                  <path d="M5 21c0-4 3-7 7-7s7 3 7 7"/>
+                </g>
+              </svg>
+              <span>Entrar</span>
+            </a>
+            <a class="nav-link" href="carrinho.html" aria-current="page">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 6h15l-2 7H8L6 6z"/>
+                  <circle cx="9" cy="19" r="2"/>
+                  <circle cx="18" cy="19" r="2"/>
+                </g>
+              </svg>
+              <span>Carrinho</span>
+              <span class="cart-count-badge" data-cart-count>0</span>
+            </a>
+          </nav>
+          <div class="cta-group">
+            <a class="cta cta-primary" href="index.html" role="button" aria-label="Crie Aqui Seus Imãs">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3l1.8 3.6L18 8.2l-3 2.9.7 4.1-3.7-1.9-3.7 1.9.7-4.1-3-2.9 4.2-1.6L12 3z"/>
+                </g>
+              </svg>
+              <span>Crie Aqui Seus Imãs</span>
+            </a>
+            <a class="cta cta-secondary" href="modelos.html" aria-label="Exemplos">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="4" width="7" height="7" rx="1"/>
+                  <rect x="13" y="4" width="7" height="7" rx="1"/>
+                  <rect x="4" y="13" width="7" height="7" rx="1"/>
+                  <rect x="13" y="13" width="7" height="7" rx="1"/>
+                </g>
+              </svg>
+              <span>Exemplos</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="cart-page">
+      <div class="container">
+        <header class="page-header">
+          <h1>Seu Carrinho</h1>
+          <p class="page-subtitle">Revise seus itens antes de finalizar a compra</p>
+        </header>
+
+        <section class="cart-content">
+          <div id="cart-list" class="cart-list" aria-live="polite"></div>
+          <aside id="cart-summary" class="cart-summary">
+            <div class="sum-row">
+              <span class="sum-label">Subtotal</span>
+              <span id="sum-subtotal" class="sum-value">R$ 0,00</span>
+            </div>
+            <div id="shipping-box" class="shipping-box">
+              <label for="cep-input" class="shipping-label">Calcular frete</label>
+              <div class="shipping-input-row">
+                <input id="cep-input" class="shipping-input" type="text" inputmode="numeric" maxlength="9" placeholder="Digite seu CEP" aria-label="CEP" />
+                <button id="btn-calc-cep" class="btn btn-light" type="button">Calcular</button>
+              </div>
+              <div class="shipping-result">
+                <div class="sum-row">
+                  <span class="sum-label">Frete</span>
+                  <span id="sum-shipping" class="sum-value">—</span>
+                </div>
+                <div id="shipping-note" class="shipping-note"></div>
+              </div>
+            </div>
+            <div class="sum-row">
+              <span class="sum-label">Itens</span>
+              <span id="sum-items" class="sum-value">0</span>
+            </div>
+            <div class="sum-total">
+              <span class="sum-label">Total</span>
+              <span id="sum-total" class="sum-value">R$ 0,00</span>
+            </div>
+            <div class="summary-actions">
+              <a href="index.html" class="btn btn-secondary">Continuar criando</a>
+              <button id="btn-clear" class="btn btn-light" type="button">Limpar carrinho</button>
+              <button id="btn-checkout" class="btn btn-primary" type="button">Finalizar compra</button>
+            </div>
+          </aside>
+        </section>
+
+        <div id="empty-cart" class="empty-cart" hidden>
+          <p>Seu carrinho está vazio.</p>
+          <a href="index.html" class="btn btn-primary">Criar seus imãs</a>
+        </div>
+      </div>
+    </main>
+
+    <script src="cart-count.js" defer></script>
+    <script src="carrinho.js"></script>
+  </body>
+</html>

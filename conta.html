@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sua conta – Imantados</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Firebase SDK (compat) necessários nesta página -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script defer src="auth.config.js"></script>
+    <script defer src="firebase-auth.js"></script>
+    <script defer src="firebase-db.js"></script>
+    <script defer src="auth-status.js"></script>
+  </head>
+  <body class="blank-page">
+    <header class="site-header" role="banner">
+      <div class="header-inner">
+        <a class="brand" href="index.html" aria-label="Ir para a página inicial">
+          <img class="logo" src="assets/logo-imantados.png" alt="Imantados" onerror="this.onerror=null; this.src='assets/botao.png'" />
+        </a>
+        <div class="actions">
+          <nav class="nav" aria-label="Navegação principal">
+            <a class="nav-link" href="empresa.html"><span>Empresa</span></a>
+            <a class="cta-mural" href="mural.html">Mural</a>
+            <a class="nav-link" href="login.html"><span>Entrar</span></a>
+            <a class="nav-link" href="carrinho.html"><span>Carrinho</span><span class="cart-count-badge" data-cart-count>0</span></a>
+          </nav>
+          <div class="cta-group">
+            <a class="cta cta-primary" href="#"><span>Crie Aqui Seus Imãs</span></a>
+            <a class="cta cta-secondary" href="modelos.html"><span>Exemplos</span></a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="empresa-page" aria-label="Sua conta">
+      <div class="content" style="max-width:980px;margin:0 auto;">
+        <h1 class="page-title" style="margin:16px 0 8px;">
+          <svg class="page-title-icon" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <title>Home</title>
+            <path d="M12 3 L3 10 H6 V21 H10 V14 H14 V21 H18 V10 H21 L12 3 Z" fill="currentColor"></path>
+          </svg>
+          <span>Sua conta</span>
+        </h1>
+        <p style="color:#374151;margin:0 0 16px;">Veja e confirme seus dados de perfil.</p>
+
+        <section class="card-box" id="accountCard">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <img id="accPhoto" class="user-avatar" src="assets/avatar6.png" alt="Avatar" />
+            <div>
+              <div id="accName" style="font-weight:600; color:#111827;">—</div>
+              <div id="accEmail" style="color:#6b7280; font-size:.95rem;">—</div>
+              <div id="accUid" style="color:#9ca3af; font-size:.80rem; display:none;">—</div>
+            </div>
+          </div>
+          <div style="margin-top:12px; display:flex; align-items:center; gap:8px; color:#374151;">
+            <span>Status:</span>
+            <span id="accStatus" class="status-badge status-unknown">indefinido</span>
+          </div>
+          <hr style="margin:16px 0; border:none; border-top:1px solid #e5e7eb;" />
+          <h2 style="margin:0 0 12px; font-size:1.1rem; color:#111827;">Editar dados</h2>
+          <form id="accForm" class="auth-form" onsubmit="return false;" style="display:grid; gap:10px; max-width:520px;">
+            <div>
+              <label class="visually-hidden" for="edit-name">Nome</label>
+              <input id="edit-name" type="text" class="auth-input" placeholder="Seu nome" />
+            </div>
+            <div>
+              <label class="visually-hidden" for="edit-phone">Telefone</label>
+              <input id="edit-phone" type="tel" class="auth-input" placeholder="Telefone (DDD + número)" />
+            </div>
+            <!-- Campo de URL de foto removido -->
+            <div>
+              <label class="visually-hidden" for="edit-instagram">Instagram</label>
+              <input id="edit-instagram" type="text" class="auth-input" placeholder="@seuusuario do Instagram" />
+            </div>
+            <div>
+              <label class="visually-hidden" for="edit-facebook">Facebook</label>
+              <input id="edit-facebook" type="text" class="auth-input" placeholder="Nome da conta do Facebook" />
+            </div>
+            <div class="auth-actions" style="display:flex; gap:8px; align-items:center;">
+              <button id="save-acc" type="button" class="auth-submit" disabled>Salvar</button>
+              <div id="save-msg" class="save-msg" aria-live="polite" style="font-size:13px; color:#374151;"></div>
+            </div>
+            <!-- Seção de upload de foto removida conforme solicitação -->
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+        // Leitura básica do authUser
+        let user = null;
+        try { user = JSON.parse(localStorage.getItem('authUser') || 'null'); } catch {}
+        const photo = (user?.photo || user?.photoURL) || 'assets/avatar6.png';
+        document.getElementById('accPhoto').src = photo;
+        document.getElementById('accName').textContent = user?.name || '—';
+        document.getElementById('accEmail').textContent = user?.email || '—';
+        document.getElementById('accUid').textContent = user?.uid ? `UID: ${user.uid}` : '—';
+
+        // Prefill do formulário
+        const nameInput = document.getElementById('edit-name');
+        const phoneInput = document.getElementById('edit-phone');
+        const instagramInput = document.getElementById('edit-instagram');
+        const facebookInput = document.getElementById('edit-facebook');
+        const saveBtn = document.getElementById('save-acc');
+        const saveMsg = document.getElementById('save-msg');
+        const accStatusEl = document.getElementById('accStatus');
+        const original = { name: user?.name || '', phone: user?.phone || '', instagram: user?.instagram || '', facebook: user?.facebook || '' };
+        if (nameInput) nameInput.value = user?.name || '';
+        if (phoneInput) phoneInput.value = user?.phone || '';
+        if (instagramInput) instagramInput.value = user?.instagram || '';
+        if (facebookInput) facebookInput.value = user?.facebook || '';
+
+        function setStatusBadge(status) {
+          const s = (status || 'indefinido').toLowerCase();
+          accStatusEl.textContent = s;
+          accStatusEl.classList.remove('status-active','status-pending','status-blocked','status-unknown');
+          if (s === 'active' || s === 'ativo') accStatusEl.classList.add('status-active');
+          else if (s === 'pending' || s === 'pendente') accStatusEl.classList.add('status-pending');
+          else if (s === 'blocked' || s === 'bloqueado') accStatusEl.classList.add('status-blocked');
+          else accStatusEl.classList.add('status-unknown');
+        }
+
+        function normalizePhone(v) { return (v || '').replace(/\s+/g,' ').trim(); }
+        function isPhoneValid(v) {
+          if (!v) return true; // opcional
+          const onlyDigits = v.replace(/[^0-9]/g,'');
+          return onlyDigits.length >= 10 && onlyDigits.length <= 12; // DDD + número (Brasil)
+        }
+
+        function updateDirtyState() {
+          const cur = {
+            name: nameInput?.value || '',
+            phone: phoneInput?.value || '',
+            instagram: instagramInput?.value || '',
+            facebook: facebookInput?.value || '',
+          };
+          const dirty = ['name','phone','instagram','facebook'].some(k => (cur[k] || '') !== (original[k] || ''));
+          saveBtn.disabled = !dirty;
+        }
+        ['input','change'].forEach(evt => {
+          nameInput?.addEventListener(evt, updateDirtyState);
+          phoneInput?.addEventListener(evt, updateDirtyState);
+          instagramInput?.addEventListener(evt, updateDirtyState);
+          facebookInput?.addEventListener(evt, updateDirtyState);
+        });
+        updateDirtyState();
+
+        // Status e dados no Firestore, se disponível
+        try {
+          if (window.DB && window.DB.isReady() && user?.uid) {
+            const unsub = window.DB.onClientSnapshot(user.uid, (data) => {
+              const status = data?.status ? String(data.status) : 'pendente';
+              setStatusBadge(status);
+              if (data) {
+                if (nameInput && data.name) nameInput.value = data.name;
+                if (phoneInput && data.phone) phoneInput.value = data.phone;
+                if (data.photo) document.getElementById('accPhoto').src = data.photo;
+                if (data.name) document.getElementById('accName').textContent = data.name;
+                if (instagramInput && data.instagram) instagramInput.value = data.instagram;
+                if (facebookInput && data.facebook) facebookInput.value = data.facebook;
+                original.name = nameInput?.value || '';
+                original.phone = phoneInput?.value || '';
+                original.instagram = instagramInput?.value || '';
+                original.facebook = facebookInput?.value || '';
+                updateDirtyState();
+              }
+            });
+            try { window.addEventListener('beforeunload', () => { try { unsub && unsub(); } catch {} }); } catch {}
+          }
+        } catch {}
+
+        // Salvar alterações
+        document.getElementById('save-acc')?.addEventListener('click', async () => {
+          if (!user || !user.uid) { alert('Faça login para salvar suas alterações.'); return; }
+          const name = nameInput?.value?.trim() || null;
+          const phone = normalizePhone(phoneInput?.value?.trim() || '');
+          if (!isPhoneValid(phone)) { saveMsg.textContent = 'Telefone inválido. Use DDD + número.'; return; }
+          const instagram = instagramInput?.value?.trim() || null;
+          const facebook = facebookInput?.value?.trim() || null;
+          const patch = {};
+          if (name) patch.name = name; else patch.name = null;
+          if (phone) patch.phone = phone; else patch.phone = null;
+          if (instagram) patch.instagram = instagram; else patch.instagram = null;
+          if (facebook) patch.facebook = facebook; else patch.facebook = null;
+          try {
+            if (window.DB && window.DB.isReady()) {
+              await window.DB.updateSelf(user.uid, patch);
+            }
+            // Atualiza storage de sessão e UI imediatamente
+            const merged = { uid: user.uid, email: user.email || null, name: name || user.name || null, phone: phone || user.phone || null, photo: user.photo || null, instagram: instagram || user.instagram || null, facebook: facebook || user.facebook || null };
+            try { sessionStorage.setItem('authUser', JSON.stringify(merged)); } catch { try { localStorage.setItem('authUser', JSON.stringify(merged)); } catch {} }
+            document.getElementById('accName').textContent = merged.name || '—';
+            document.getElementById('accPhoto').src = merged.photo || 'assets/avatar6.png';
+            saveMsg.textContent = 'Dados salvos com sucesso.';
+            original.name = nameInput?.value || '';
+            original.phone = phoneInput?.value || '';
+            original.instagram = instagramInput?.value || '';
+            original.facebook = facebookInput?.value || '';
+            updateDirtyState();
+          } catch (e) {
+            saveMsg.textContent = 'Erro ao salvar: ' + (e && e.message ? e.message : e);
+          }
+        });
+
+        // Upload de foto removido
+      });
+    </script>
+  </body>
+  <script src="cart-count.js" defer></script>
+</html>

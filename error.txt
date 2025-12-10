@@ -1,0 +1,25 @@
+Vercel CLI 48.10.11
+Retrieving project…
+Deploying juniors-projects-2762b439/imantados
+Uploading [--------------------] (0.0B/88B)
+Uploading [====================] (88.0B/88B)
+Inspect: https://vercel.com/juniors-projects-2762b439/imantados/EuPFyKVEAS35Ash2cYUZEbrJu625 [3s]
+Preview: https://imantados-oxony949p-juniors-projects-2762b439.vercel.app [3s]
+Queued...
+Queued...
+Building: Running build in Washington, D.C., USA (East) – iad1
+Building: Build machine configuration: 2 cores, 8 GB
+Building: Retrieving list of deployment files...
+Building: Downloading 473 deployment files...
+Building: Restored build cache from previous deployment (2CH2bmUrZevEP6T82kgWFQvDTr68)
+Building: Running "vercel build"
+Building: Vercel CLI 48.10.5
+Building: Installing dependencies...
+Building: up to date in 1s
+Building: 81 packages are looking for funding
+Building: run `npm fund` for details
+Building: Build Completed in /vercel/output [3s]
+Building: Deploying outputs...
+[2K[1A[2K[GPreview: https://imantados-oxony949p-juniors-projects-2762b439.vercel.app [19s]
+Completing...
+To deploy to production (www.imantados.com.br +1), run `vercel --prod`

@@ -1,0 +1,76 @@
+/* Liquid Glass Button – CSS reutilizável */
+:root{
+  --glass-bg-1: rgba(255,255,255,.16);
+  --glass-bg-2: rgba(255,255,255,.08);
+  --glass-border: rgba(255,255,255,.28);
+  --glass-text: rgba(255,255,255,.98);
+  --glass-shadow: 0 8px 30px rgba(0,0,0,.35);
+  --glass-blur: 14px;
+}
+
+.btn-glass{
+  --radius: 999px;
+  --pad-x: 22px;
+  --pad-y: 12px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--pad-y) var(--pad-x);
+  border-radius: var(--radius);
+  color: var(--glass-text);
+  background: linear-gradient(180deg,var(--glass-bg-1),var(--glass-bg-2));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  cursor: pointer;
+  user-select: none;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+/* Aura neutra (padrão). Troque por esquemas abaixo conforme necessário */
+.btn-glass::before{
+  content:""; position:absolute; inset:-2px; border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(168,85,247,.55) 0%, rgba(236,72,153,.45) 40%, rgba(59,130,246,.45) 100%);
+  filter: blur(8px); opacity:.7; z-index:0; padding:1px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+
+/* Variante de aura para botão com acento azul – brilho azul+pêssego à esquerda */
+.btn-glass.accent-blue::before{
+  background:
+    radial-gradient(120px 120px at 6% 62%, rgba(116,188,255,.75) 0%, rgba(116,188,255,.35) 40%, transparent 70%),
+    radial-gradient(140px 120px at 10% 66%, rgba(255,186,150,.60) 0%, rgba(255,186,150,.28) 42%, transparent 72%);
+}
+
+/* Brilho especular superior */
+.btn-glass::after{
+  content:""; position:absolute; left:10px; right:10px; top:6px; height:6px;
+  background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,0));
+  border-radius:999px; filter: blur(3px); opacity:.7; z-index:1;
+}
+
+/* Conteúdo */
+.btn-glass__label{ position: relative; z-index:2; font: 600 17px/1.1 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Apple Color Emoji','Segoe UI Emoji'; letter-spacing:.02em; text-shadow: 0 1px 0 rgba(0,0,0,.35); }
+
+/* Tamanhos e utilidades */
+.btn-glass.sm{ --pad-x:16px; --pad-y:8px; }
+.btn-glass.lg{ --pad-x:28px; --pad-y:14px; }
+.btn-glass.lg .btn-glass__label{ font-size: 22px; }
+.btn-glass.h50{ height: 50px; padding: 0 var(--pad-x); }
+
+/* Esquemas de cor (opcionais) */
+.accent-purple{ --accent-a: rgba(168,85,247,.55); --accent-b: rgba(236,72,153,.45); --accent-c: rgba(59,130,246,.45); }
+.accent-blue{   --accent-a: rgba(59,130,246,.55);  --accent-b: rgba(56,189,248,.45); --accent-c: rgba(147,197,253,.45); }
+.accent-emerald{--accent-a: rgba(16,185,129,.55);  --accent-b: rgba(52,211,153,.45); --accent-c: rgba(125,211,252,.45); }
+
+/* Interações */
+.btn-glass:hover{ transform: translateY(-1px) scale(1.01); }
+.btn-glass:hover::before{ opacity:1; }
+.btn-glass:active{ transform: translateY(0) scale(.985); }
+.btn-glass:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(168,85,247,.35) inset, 0 0 0 3px rgba(168,85,247,.25); }
+
+/* Nota: bolha líquida omitida por padrão; adicione .btn-glass__bubble se desejar */

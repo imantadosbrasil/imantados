@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout | Imantados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header" role="banner">
+      <div class="header-inner">
+        <a class="brand" href="index.html" aria-label="Ir para a página inicial">
+          <img class="logo" src="assets/logo-imantados.png" alt="Imantados" onerror="this.onerror=null; this.src='assets/botao.png'" />
+        </a>
+        <div class="actions">
+          <nav class="nav" aria-label="Navegação principal">
+            <a class="nav-link" href="empresa.html">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21h18"/>
+                  <path d="M6 21V7h6v14"/>
+                  <path d="M14 21V11h6v10"/>
+                  <path d="M8 9h2M8 13h2M8 17h2"/>
+                  <path d="M16 13h2M16 17h2"/>
+                </g>
+              </svg>
+              <span>Empresa</span>
+            </a>
+            <a class="cta-mural" href="mural.html" aria-label="Mural Imantados">Mural</a>
+            <a class="nav-link" href="login.html">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="7" r="3"/>
+                  <path d="M5 21c0-4 3-7 7-7s7 3 7 7"/>
+                </g>
+              </svg>
+              <span>Entrar</span>
+            </a>
+            <a class="nav-link" href="carrinho.html">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 6h15l-2 7H8L6 6z"/>
+                  <circle cx="9" cy="19" r="2"/>
+                  <circle cx="18" cy="19" r="2"/>
+                </g>
+              </svg>
+              <span>Carrinho</span>
+              <span class="cart-count-badge" data-cart-count>0</span>
+            </a>
+          </nav>
+          <div class="cta-group">
+            <a class="cta cta-primary" href="index.html" role="button" aria-label="Crie Aqui Seus Imãs">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3l1.8 3.6L18 8.2l-3 2.9.7 4.1-3.7-1.9-3.7 1.9.7-4.1-3-2.9 4.2-1.6L12 3z"/>
+                </g>
+              </svg>
+              <span>Crie Aqui Seus Imãs</span>
+            </a>
+            <a class="cta cta-secondary" href="modelos.html" aria-label="Exemplos">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="4" width="7" height="7" rx="1"/>
+                  <rect x="13" y="4" width="7" height="7" rx="1"/>
+                  <rect x="4" y="13" width="7" height="7" rx="1"/>
+                  <rect x="13" y="13" width="7" height="7" rx="1"/>
+                </g>
+              </svg>
+              <span>Exemplos</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="checkout-page">
+      <div class="container">
+        <header class="page-header">
+          <h1>Finalizar Compra</h1>
+          <p class="page-subtitle">Revise seus itens e informe seus dados para concluir.</p>
+        </header>
+
+        <section class="checkout-content" id="checkout-content">
+          <div class="checkout-wrap" style="display:grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items:start;">
+            <div>
+              <h2>Resumo do Pedido</h2>
+              <ul id="order-list" class="cart-list" aria-live="polite"></ul>
+              <div class="cart-summary" style="margin-top:10px">
+                <div class="sum-row">
+                  <span class="sum-label">Subtotal</span>
+                  <span id="sum-subtotal" class="sum-value">R$ 0,00</span>
+                </div>
+                <div class="sum-row">
+                  <span class="sum-label">Frete</span>
+                  <span id="sum-shipping" class="sum-value">R$ 0,00</span>
+                </div>
+                <div class="sum-row">
+                  <span class="sum-label">Total</span>
+                  <span id="sum-total" class="sum-value">R$ 0,00</span>
+                </div>
+              </div>
+            </div>
+
+            <form id="checkout-form" class="mural-card" style="padding:16px;">
+              <h2>Dados do Comprador</h2>
+              <div style="margin-top:8px;">
+                <label for="cust-country">País/Região</label>
+                <select id="cust-country">
+                  <option value="Brasil" selected>Brasil</option>
+                </select>
+              </div>
+              <div class="row-inline" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                  <label for="cust-name">Nome completo (nome e sobrenome)</label>
+                  <input id="cust-name" type="text" required />
+                </div>
+                <div>
+                  <label for="cust-email">E-mail</label>
+                  <input id="cust-email" type="email" required />
+                </div>
+              </div>
+              <div class="row-inline" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+                <div>
+                  <label for="cust-phone">Telefone</label>
+                  <input id="cust-phone" type="tel" />
+                </div>
+                <div>
+                  <label for="cust-cep">CEP</label>
+                  <input id="cust-cep" type="text" />
+                </div>
+              </div>
+              <div style="margin-top:4px;">
+                <small id="cep-msg" style="color:#374151">Digite o CEP para preencher o endereço automaticamente.</small>
+              </div>
+              <div style="margin-top:8px;">
+                <label for="cust-address">Endereço</label>
+                <input id="cust-address" type="text" required />
+              </div>
+              <div class="row-inline" style="display:grid; grid-template-columns:160px 1fr; gap:10px; margin-top:8px;">
+                <div>
+                  <label for="cust-number">Número da residência</label>
+                  <input id="cust-number" type="text" required />
+                </div>
+                <div>
+                  <label for="cust-complement">Complemento (opcional)</label>
+                  <input id="cust-complement" type="text" placeholder="Apartamento, sala, conjunto, edifício, andar, etc." />
+                </div>
+              </div>
+              <div style="margin-top:8px;">
+                <label for="cust-bairro">Bairro</label>
+                <input id="cust-bairro" type="text" />
+              </div>
+              <div class="row-inline" style="display:grid; grid-template-columns:1fr 160px; gap:10px; margin-top:8px;">
+                <div>
+                  <label for="cust-city">Cidade</label>
+                  <input id="cust-city" type="text" />
+                </div>
+                <div>
+                  <label for="cust-state">Estado</label>
+                  <input id="cust-state" type="text" placeholder="UF" maxlength="2" />
+                </div>
+              </div>
+              <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+                <input id="addr-default" type="checkbox" />
+                <label for="addr-default">Tornar este o meu endereço padrão</label>
+              </div>
+              <section class="payment-section" style="margin-top:16px;">
+                <h3 style="margin:0 0 8px; font-size:1rem;">Método de pagamento</h3>
+                <div class="pay-options">
+                  <label class="pay-option">
+                    <input type="radio" name="pay" value="pix" checked />
+                    <svg class="icon-svg pix" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 2 L22 12 L12 22 L2 12 Z" fill="#34d399"/>
+                      <rect x="10.5" y="10.5" width="3" height="3" rx="0.8" fill="#10b981"/>
+                    </svg>
+                    <span>Pix</span>
+                  </label>
+                  <label class="pay-option">
+                    <input type="radio" name="pay" value="boleto" />
+                    <svg class="icon-svg boleto" viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="3" y="5" width="18" height="14" rx="2" fill="#fff" stroke="#111827"/>
+                      <rect x="5" y="7" width="1" height="10" fill="#111827"/>
+                      <rect x="8" y="7" width="1" height="10" fill="#111827"/>
+                      <rect x="11" y="7" width="1" height="10" fill="#111827"/>
+                      <rect x="14" y="7" width="1" height="10" fill="#111827"/>
+                      <rect x="17" y="7" width="1" height="10" fill="#111827"/>
+                    </svg>
+                    <span>Boleto</span>
+                  </label>
+                  <label class="pay-option">
+                    <input type="radio" name="pay" value="apple" />
+                    <svg class="icon-svg apple" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M16.5 13.5c-.3 3 2.7 4 2.9 4.1-.1.4-1.5 4.4-4.4 4.4-1.2 0-2.1-.8-3.2-.8-1.1 0-2.3.8-3.2.8-2.2 0-5.1-3.6-5.1-7.1 0-3.1 2.2-4.7 4.2-4.7 1.1 0 2 .8 3.2.8 1.2 0 2-.8 3.2-.8 1.5 0 2.8.8 3.6 2.1-.1.1-2.6 1.5-2.5 4.2z" fill="#000"/>
+                      <path d="M14.5 5.5c.8-1 1.3-2.2 1.1-3.5-1.1.1-2.4.8-3.1 1.8-.7.9-1.2 2.2-1 3.4 1.2.1 2.4-.7 3-1.7z" fill="#000"/>
+                    </svg>
+                    <span>Apple Pay</span>
+                  </label>
+                  <label class="pay-option">
+                    <input type="radio" name="pay" value="cartao" />
+                    <svg class="icon-svg card" viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="3" y="5" width="18" height="14" rx="3" fill="#3b82f6"/>
+                      <rect x="3" y="8" width="18" height="3" fill="#1e40af"/>
+                      <rect x="6" y="13" width="4" height="2" rx="1" fill="#93c5fd"/>
+                    </svg>
+                    <span>Cartão de crédito</span>
+                  </label>
+                </div>
+              <div id="mp-payment-brick" style="margin-top:12px; display:none;"></div>
+              </section>
+              <fieldset style="margin-top:12px;">
+                <legend>Provedor</legend>
+                <label><input type="radio" name="provider" value="mercado" checked /> Mercado Pago (Pix e Cartão)</label>
+                <label style="margin-left:12px"><input type="radio" name="provider" value="stripe" /> Stripe (Cartão, Pix, Apple Pay)</label>
+              </fieldset>
+              <button id="btn-place-order" class="btn btn-primary" type="submit" style="margin-top:12px">Confirmar pedido</button>
+              <p id="order-msg" style="margin-top:8px; color:#374151"></p>
+            </form>
+          </div>
+        </section>
+      </div>
+    </main>
+
+
+    <!-- Firebase (compat) Firestore e DB do cliente para gating do checkout -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script defer src="auth.config.js"></script>
+    <script defer src="firebase-db.js"></script>
+    <script src="auth-status.js"></script>
+    <script>window.MP_PUBLIC_KEY = "APP_USR-83c0985a-dd1d-4ca6-b22b-968b34988f03";</script>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script src="checkout.js"></script>
+  </body>
+  </html>

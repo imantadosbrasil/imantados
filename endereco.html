@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Adicione um endereço</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="styles/endereco.css" />
+</head>
+<body>
+  <main class="container">
+    <div class="form-container">
+      <h1 class="page-title">Adicione um endereço</h1>
+      <form id="enderecoForm" class="address-form">
+        <div class="form-section">
+          <label for="cep" class="form-label">CEP</label>
+          <div class="cep-container">
+            <div class="input-with-icon">
+              <input type="text" id="cep" name="cep" placeholder="Ex: 05424-150" maxlength="9" required />
+              <i class="fas fa-map-marker-alt input-icon"></i>
+            </div>
+            <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener" class="link-button">Não sei meu CEP</a>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="rua" class="form-label">Rua / Avenida</label>
+            <div class="input-with-icon">
+              <input type="text" id="rua" name="rua" placeholder="Ex: Avenida Paulista" required />
+              <i class="fas fa-map input-icon"></i>
+            </div>
+          </div>
+          <div class="form-group numero-group">
+            <label for="numero" class="form-label">Número</label>
+            <div class="numero-container">
+              <input type="text" id="numero" name="numero" placeholder="Ex: 1000" required />
+              <label class="checkbox-label">
+                <input type="checkbox" id="semNumero" name="semNumero" />
+                <span class="checkmark"></span>
+                Sem número
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label for="complemento" class="form-label">Complemento (opcional)</label>
+          <input type="text" id="complemento" name="complemento" placeholder="Ex: Apto 201" />
+        </div>
+
+        <div class="form-section">
+          <label for="bairro" class="form-label">Bairro</label>
+          <input type="text" id="bairro" name="bairro" placeholder="Ex: Bela Vista" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cidade" class="form-label">Cidade</label>
+            <input type="text" id="cidade" name="cidade" placeholder="Ex: São Paulo" required />
+          </div>
+          <div class="form-group">
+            <label for="estado" class="form-label">Estado</label>
+            <select id="estado" name="estado" required>
+              <option value="">Selecione</option>
+              <option value="AC">AC</option>
+              <option value="AL">AL</option>
+              <option value="AP">AP</option>
+              <option value="AM">AM</option>
+              <option value="BA">BA</option>
+              <option value="CE">CE</option>
+              <option value="DF">DF</option>
+              <option value="ES">ES</option>
+              <option value="GO">GO</option>
+              <option value="MA">MA</option>
+              <option value="MT">MT</option>
+              <option value="MS">MS</option>
+              <option value="MG">MG</option>
+              <option value="PA">PA</option>
+              <option value="PB">PB</option>
+              <option value="PR">PR</option>
+              <option value="PE">PE</option>
+              <option value="PI">PI</option>
+              <option value="RJ">RJ</option>
+              <option value="RN">RN</option>
+              <option value="RS">RS</option>
+              <option value="RO">RO</option>
+              <option value="RR">RR</option>
+              <option value="SC">SC</option>
+              <option value="SP">SP</option>
+              <option value="SE">SE</option>
+              <option value="TO">TO</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">Informações adicionais deste endereço (opcional)</label>
+          <textarea id="infoAdicional" name="infoAdicional" placeholder="Ex: Entre ruas, cor do edifício, não tem campainha." maxlength="128" rows="3"></textarea>
+          <div class="char-counter"><span id="charCount">0</span> / 128</div>
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">Este é o seu trabalho ou sua casa?</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="tipoEndereco" value="casa" checked />
+              <span class="radio-custom"><i class="fas fa-home"></i></span>
+              <span class="radio-text">Casa</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="tipoEndereco" value="trabalho" />
+              <span class="radio-custom"><i class="fas fa-briefcase"></i></span>
+              <span class="radio-text">Trabalho</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">Dados de contato</h3>
+          <p class="section-helper">Se houver algum problema no envio, você receberá uma ligação neste número.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nome" class="form-label">Nome e sobrenome</label>
+              <input type="text" id="nome" name="nome" placeholder="Ex: João Silva" required />
+            </div>
+            <div class="form-group">
+              <label for="telefone" class="form-label">Telefone de contato</label>
+              <input type="tel" id="telefone" name="telefone" placeholder="Ex: (11) 99999-9999" maxlength="15" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="scripts/endereco.js"></script>
+</body>
+</html>

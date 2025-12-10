@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Últimos pedidos – Imantados</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="auth.config.js"></script>
+    <script defer src="firebase-auth.js"></script>
+    <script defer src="auth-status.js"></script>
+  </head>
+  <body class="blank-page">
+    <header class="site-header" role="banner">
+      <div class="header-inner">
+        <a class="brand" href="index.html" aria-label="Ir para a página inicial">
+          <img class="logo" src="assets/logo-imantados.png" alt="Imantados" onerror="this.onerror=null; this.src='assets/botao.png'" />
+        </a>
+        <div class="actions">
+          <nav class="nav" aria-label="Navegação principal">
+            <a class="nav-link" href="empresa.html"><span>Empresa</span></a>
+            <a class="cta-mural" href="mural.html">Mural</a>
+            <a class="nav-link" href="login.html"><span>Entrar</span></a>
+            <a class="nav-link" href="carrinho.html"><span>Carrinho</span><span class="cart-count-badge" data-cart-count>0</span></a>
+          </nav>
+          <div class="cta-group">
+            <a class="cta cta-primary" href="#"><span>Crie Aqui Seus Imãs</span></a>
+            <a class="cta cta-secondary" href="modelos.html"><span>Exemplos</span></a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="empresa-page" aria-label="Últimos pedidos">
+      <div class="content" style="max-width:980px;margin:0 auto;">
+        <h1 style="margin:16px 0 8px;">Últimos pedidos</h1>
+        <p style="color:#374151;margin:0 0 16px;">Em breve você verá seus pedidos recentes aqui.</p>
+        <section class="card-box">
+          <div style="color:#6b7280;">Nenhum pedido encontrado.</div>
+        </section>
+      </div>
+    </main>
+  </body>
+  <script src="cart-count.js" defer></script>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pedido Confirmado | Imantados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header" role="banner">
+      <div class="header-inner">
+        <a class="brand" href="index.html" aria-label="Ir para a página inicial">
+          <img class="logo" src="assets/logo-imantados.png" alt="Imantados" onerror="this.onerror=null; this.src='assets/botao.png'" />
+        </a>
+        <div class="actions">
+          <nav class="nav" aria-label="Navegação principal">
+            <a class="nav-link" href="empresa.html"><span>Empresa</span></a>
+            <a class="cta-mural" href="mural.html" aria-label="Mural Imantados">Mural</a>
+            <a class="nav-link" href="modelos.html"><span>Modelos</span></a>
+          </nav>
+        </div>
+      </div>
+    </header>
+    <main class="container" style="padding-top:90px">
+      <section class="mural-card" style="padding:16px;">
+        <h1>Obrigado! Pedido recebido.</h1>
+        <p id="order-id" style="font-weight:600">Pedido: —</p>
+        <p id="order-total">Total: —</p>
+        <p>Enviamos os detalhes para o e-mail informado.</p>
+        <div style="margin-top:12px">
+          <a class="cta cta-primary" href="index.html">Voltar à loja</a>
+        </div>
+      </section>
+    </main>
+    <script>
+      (function(){
+        let order = null;
+        try { order = JSON.parse(localStorage.getItem('lastOrder')||'null'); } catch {}
+        if (order) {
+          document.getElementById('order-id').textContent = 'Pedido: ' + order.id;
+          document.getElementById('order-total').textContent = 'Total: ' + Number(order.total||0).toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+        }
+        const params = new URLSearchParams(location.search);
+        const payId = params.get('payment_id') || params.get('collection_id');
+        const status = (params.get('collection_status') || params.get('status') || '').toLowerCase();
+        const externalRef = params.get('external_reference') || '';
+        const merchantOrderId = params.get('merchant_order_id') || '';
+        const msgEl = document.createElement('p');
+        msgEl.id = 'pay-status';
+        if (status) {
+          if (status === 'approved') { msgEl.textContent = 'Pagamento aprovado.'; }
+          else if (status === 'pending') { msgEl.textContent = 'Pagamento pendente.'; }
+          else if (status === 'rejected') { msgEl.textContent = 'Pagamento rejeitado.'; }
+          else { msgEl.textContent = 'Status do pagamento: ' + status; }
+          document.querySelector('section.mural-card')?.appendChild(msgEl);
+        }
+        if (payId) {
+          fetch('/api/mp-payment-status?id=' + encodeURIComponent(payId)).then(r=>r.json()).then(data=>{
+            if (data && data.status) {
+              const s = String(data.status).toLowerCase();
+              if (s === 'approved') { msgEl.textContent = 'Pagamento aprovado.'; }
+              else if (s === 'pending') { msgEl.textContent = 'Pagamento pendente.'; }
+              else if (s === 'rejected') { msgEl.textContent = 'Pagamento rejeitado.'; }
+              else { msgEl.textContent = 'Status do pagamento: ' + s; }
+            }
+          }).catch(()=>{});
+        }
+        if (externalRef) {
+          const ex = document.createElement('p'); ex.className = 'note'; ex.textContent = 'Ref.: ' + externalRef; document.querySelector('section.mural-card')?.appendChild(ex);
+        }
+        if (merchantOrderId) {
+          const mo = document.createElement('p'); mo.className = 'note'; mo.textContent = 'Ordem: ' + merchantOrderId; document.querySelector('section.mural-card')?.appendChild(mo);
+        }
+      })();
+    </script>
+  </body>
+  </html>

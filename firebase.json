@@ -1,0 +1,26 @@
+{
+  "hosting": {
+    "site": "marcaimantados",
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "server.js"
+    ]
+    ,
+    "rewrites": [
+      { "source": "/api/mp-create-preference", "function": "mpCreatePreference" },
+      { "source": "/api/stripe-checkout", "function": "stripeCheckout" },
+      { "source": "/api/mp-process-payment", "function": "mpProcessPayment" },
+      { "source": "/api/mp-installments", "function": "mpInstallments" },
+      { "source": "/api/correios-prazo", "function": "correiosPrazo" }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "functions": {
+    "source": "functions"
+  }
+}

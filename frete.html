@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Escolha o frete</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;background:#f3f4f6;color:#111827;margin:0}
+      .container{max-width:980px;margin:0 auto;padding:24px}
+      .page-title{font-size:1.5rem;font-weight:600;margin:0 0 16px}
+      .card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+      .card-body{padding:16px}
+      .radio-row{display:flex;align-items:flex-start;gap:12px}
+      .address-meta{color:#6b7280;font-size:.9rem;margin-top:6px}
+      .address-actions{margin-top:8px}
+      .address-actions a{color:#2563eb;text-decoration:none}
+      .grid{display:grid;grid-template-columns:1fr 290px;gap:16px}
+      .summary{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px}
+      .summary-header{padding:12px;border-bottom:1px solid #e5e7eb;font-weight:600}
+      .summary-row{display:flex;justify-content:space-between;padding:12px 12px;border-top:1px dashed #e5e7eb}
+      .summary-row:first-child{border-top:0}
+      .summary-total{font-weight:700}
+      .tag{margin-left:auto;color:#10b981;font-weight:600}
+      .actions{display:flex;justify-content:flex-end;margin-top:16px}
+      .btn{border:1px solid #1f2937;border-radius:6px;padding:10px 18px;font-weight:600;cursor:pointer}
+      .btn-primary{background:#2563eb;border-color:#2563eb;color:#fff}
+      .btn-primary:hover{background:#1d4ed8}
+      .btn-link{background:transparent;border:0;color:#2563eb;cursor:pointer}
+      @media (max-width:860px){.grid{grid-template-columns:1fr}.summary{margin-top:12px}}
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <h1 class="page-title">Confira a forma de entrega</h1>
+      <div class="grid">
+        <section class="card">
+          <div class="card-body">
+            <label class="radio-row">
+              <input type="radio" name="deliver" value="address" checked />
+              <div>
+                <div id="deliver-title" style="display:flex;align-items:center;gap:8px">
+                  <strong>Enviar no meu endereço</strong>
+                  <span id="frete-tag" class="tag"></span>
+                </div>
+                <div id="deliver-address" class="address-meta"></div>
+                <div id="deliver-type" class="address-meta"></div>
+                <div class="address-actions">
+                  <a href="endereco.html">Alterar ou escolher outro endereço</a>
+                </div>
+              </div>
+            </label>
+            <div class="actions">
+              <button id="btn-continue" class="btn btn-primary">Continuar</button>
+            </div>
+          </div>
+        </section>
+        <aside class="summary">
+          <div class="summary-header">Resumo da compra</div>
+          <div class="summary-row"><span>Produto</span><span id="sum-products"></span></div>
+          <div class="summary-row"><span>Frete</span><span id="sum-frete"></span></div>
+          <div class="summary-row summary-total"><span>Total</span><span id="sum-total"></span></div>
+          <div class="summary-row"><span>Prazo</span><span id="sum-prazo"></span></div>
+        </aside>
+      </div>
+    </main>
+    <script src="scripts/frete.js"></script>
+  </body>
+</html>

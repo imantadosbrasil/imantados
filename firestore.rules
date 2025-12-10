@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Coleção de clientes: cada usuário acessa apenas o próprio documento
+    match /clientes/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid && request.resource.data.uid == uid;
+      // Permite o usuário atualizar apenas campos de perfil, bloqueando 'status' e 'role'
+      allow update: if request.auth != null && request.auth.uid == uid &&
+        !(request.resource.data.diff(resource.data).changedKeys().hasAny(['status', 'role']));
+      // Não permite delete pelo cliente
+      allow delete: if false;
+    }
+
+    // Catálogo público de modelos por categorias
+    match /categorias/{categoria} {
+      allow read: if true;
+      allow write: if false;
+
+      match /modelos/{modeloId} {
+        allow read: if true;
+        allow write: if false;
+      }
+    }
+  }
+}

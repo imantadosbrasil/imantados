@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mural Imantados</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="cart-count.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header" role="banner">
+      <div class="header-inner">
+        <a class="brand" href="index.html" aria-label="Ir para a página inicial">
+          <img class="logo" src="assets/logo-imantados.png" alt="Imantados" onerror="this.onerror=null; this.src='assets/botao.png'" />
+        </a>
+        <div class="actions">
+          <nav class="nav" aria-label="Navegação principal">
+            <a class="nav-link" href="empresa.html">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21h18"/>
+                  <path d="M6 21V7h6v14"/>
+                  <path d="M14 21V11h6v10"/>
+                  <path d="M8 9h2M8 13h2M8 17h2"/>
+                  <path d="M16 13h2M16 17h2"/>
+                </g>
+              </svg>
+              <span>Empresa</span>
+            </a>
+            <a class="cta-mural" href="mural.html" aria-label="Mural Imantados" aria-current="page">Mural</a>
+            <a class="nav-link" href="login.html">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="7" r="3"/>
+                  <path d="M5 21c0-4 3-7 7-7s7 3 7 7"/>
+                </g>
+              </svg>
+              <span>Entrar</span>
+            </a>
+            <a class="nav-link" href="carrinho.html">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 6h15l-2 7H8L6 6z"/>
+                  <circle cx="9" cy="19" r="2"/>
+                  <circle cx="18" cy="19" r="2"/>
+                </g>
+              </svg>
+              <span>Carrinho</span>
+              <span class="cart-count-badge" data-cart-count>0</span>
+            </a>
+          </nav>
+          <div class="cta-group">
+            <a class="cta cta-primary" href="index.html" role="button" aria-label="Crie Aqui Seus Imãs">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3l1.8 3.6L18 8.2l-3 2.9.7 4.1-3.7-1.9-3.7 1.9.7-4.1-3-2.9 4.2-1.6L12 3z"/>
+                </g>
+              </svg>
+              <span>Crie Aqui Seus Imãs</span>
+            </a>
+            <a class="cta cta-secondary" href="modelos.html" aria-label="Exemplos">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="4" width="7" height="7" rx="1"/>
+                  <rect x="13" y="4" width="7" height="7" rx="1"/>
+                  <rect x="4" y="13" width="7" height="7" rx="1"/>
+                  <rect x="13" y="13" width="7" height="7" rx="1"/>
+                </g>
+              </svg>
+              <span>Exemplos</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="models-page mural-page">
+      <div class="container">
+        <header class="page-header">
+          <h1>Mural Imantados</h1>
+          <p class="page-subtitle">Compartilhe sua foto, avalie e recomende o produto.</p>
+        </header>
+
+        <!-- Formulário de postagem -->
+        <section class="mural-form">
+          <div class="mural-form-wrap">
+          <form id="muralForm" class="mural-card" aria-label="Postar no mural">
+            <div class="form-row">
+              <label for="muralImage" class="form-label">Sua foto</label>
+              <div class="file-picker">
+                <input id="muralImage" type="file" accept="image/*" capture="environment" class="visually-hidden" required />
+                <label for="muralImage" class="btn-file">Escolher foto</label>
+                <span id="fileName" class="file-name" aria-live="polite">Nenhum arquivo</span>
+              </div>
+            </div>
+            <div class="form-row row-inline">
+              <div>
+                <label for="customerName" class="form-label">Seu nome (opcional)</label>
+                <input id="customerName" type="text" class="form-input" placeholder="Ex.: Maria Silva" />
+              </div>
+              <div>
+                <label for="customerCity" class="form-label">Sua cidade (opcional)</label>
+                <input id="customerCity" type="text" class="form-input" placeholder="Ex.: São Paulo - SP" />
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="muralComment" class="form-label">Comentário (opcional)</label>
+              <textarea id="muralComment" class="form-textarea" rows="3" placeholder="Conte sua experiência"></textarea>
+            </div>
+            <div class="form-row">
+              <span class="form-label">Sua nota</span>
+              <div id="ratingBar" class="rating-bar" role="radiogroup" aria-label="Avaliação de 0 a 5">
+                <button type="button" class="star" aria-label="0 estrela" data-value="0">☆</button>
+                <button type="button" class="star" aria-label="1 estrela" data-value="1">☆</button>
+                <button type="button" class="star" aria-label="2 estrelas" data-value="2">☆</button>
+                <button type="button" class="star" aria-label="3 estrelas" data-value="3">☆</button>
+                <button type="button" class="star" aria-label="4 estrelas" data-value="4">☆</button>
+                <button type="button" class="star" aria-label="5 estrelas" data-value="5">☆</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="row-inline-checks">
+                <label class="checkbox">
+                  <input type="checkbox" id="recommend" />
+                  <span>Eu recomendo o produto</span>
+                </label>
+                <label class="checkbox">
+                  <input type="checkbox" id="postOnImantados" />
+                  <span>Postar no @Imantados</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button id="postBtn" class="cta cta-primary" type="submit">Postar no mural</button>
+            </div>
+          </form>
+          <aside class="mural-form-side" aria-label="Avatar do Imantados">
+            <img src="assets/avatar6.png" alt="Avatar" onerror="this.onerror=null; this.src='assets/AVATAR IMANTADOS.png'" />
+          </aside>
+          </div>
+        </section>
+
+        <!-- Grade do mural -->
+        <section class="mural-grid" aria-label="Mural de clientes">
+          <div id="muralGallery" class="mural-cards"></div>
+        </section>
+      </div>
+    </main>
+
+    <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+    <script src="mural.js" defer></script>
+  </body>
+</html>

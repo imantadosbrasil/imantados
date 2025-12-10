@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login – Imantados 2.0</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Firebase Auth (compat) e configuração local -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <!-- Copie auth.config.example.js para auth.config.js e preencha FIREBASE_CONFIG -->
+    <script defer src="auth.config.js"></script>
+    <script defer src="firebase-auth.js"></script>
+    <script src="cart-count.js" defer></script>
+    <script src="login.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header" role="banner">
+      <div class="header-inner">
+        <a class="brand" href="index.html" aria-label="Ir para a página inicial">
+          <img class="logo" src="assets/logo-imantados.png" alt="Imantados" onerror="this.onerror=null; this.src='assets/botao.png'" />
+        </a>
+        <div class="actions">
+          <nav class="nav" aria-label="Navegação principal">
+            <a class="nav-link" href="empresa.html">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21h18"/>
+                  <path d="M6 21V7h6v14"/>
+                  <path d="M14 21V11h6v10"/>
+                  <path d="M8 9h2M8 13h2M8 17h2"/>
+                  <path d="M16 13h2M16 17h2"/>
+                </g>
+              </svg>
+              <span>Empresa</span>
+            </a>
+            <a class="cta-mural" href="mural.html" aria-label="Mural Imantados">Mural</a>
+            <a class="nav-link" href="login.html" aria-current="page">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="7" r="3"/>
+                  <path d="M5 21c0-4 3-7 7-7s7 3 7 7"/>
+                </g>
+              </svg>
+              <span>Entrar</span>
+            </a>
+            <a class="nav-link" href="carrinho.html">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 6h15l-2 7H8L6 6z"/>
+                  <circle cx="9" cy="19" r="2"/>
+                  <circle cx="18" cy="19" r="2"/>
+                </g>
+              </svg>
+              <span>Carrinho</span>
+              <span class="cart-count-badge" data-cart-count>0</span>
+            </a>
+          </nav>
+          <div class="cta-group">
+            <a class="cta cta-primary" href="index.html" role="button" aria-label="Crie Aqui Seus Imãs">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3l1.8 3.6L18 8.2l-3 2.9.7 4.1-3.7-1.9-3.7 1.9.7-4.1-3-2.9 4.2-1.6L12 3z"/>
+                </g>
+              </svg>
+              <span>Crie Aqui Seus Imãs</span>
+            </a>
+            <a class="cta cta-secondary" href="modelos.html" aria-label="Exemplos">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="4" width="7" height="7" rx="1"/>
+                  <rect x="13" y="4" width="7" height="7" rx="1"/>
+                  <rect x="4" y="13" width="7" height="7" rx="1"/>
+                  <rect x="13" y="13" width="7" height="7" rx="1"/>
+                </g>
+              </svg>
+              <span>Exemplos</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="login-page">
+      <div class="auth-card" role="dialog" aria-labelledby="auth-title" aria-modal="true">
+        <h1 id="auth-title" class="auth-title">Entrar ou cadastrar</h1>
+        <p class="auth-subtitle">Você vai poder aproveitar respostas inteligentes e, além disso, carregar imagens, arquivos e muito mais.</p>
+
+        <div class="auth-providers">
+          <button class="auth-btn auth-google" type="button"><span class="auth-icon" aria-hidden="true">🟢</span><span>Continuar com o Google</span></button>
+          <button class="auth-btn auth-apple" type="button"><span class="auth-icon" aria-hidden="true">🍎</span><span>Continuar com a Apple</span></button>
+          <button class="auth-btn auth-microsoft" type="button"><span class="auth-icon" aria-hidden="true">🪟</span><span>Continuar com a Microsoft</span></button>
+          <button class="auth-btn auth-phone" type="button"><span class="auth-icon" aria-hidden="true">📞</span><span>Continuar com o telefone</span></button>
+          <!-- Bloco de login por telefone -->
+          <div id="phone-login" class="phone-login" hidden>
+            <div id="recaptcha-container"></div>
+            <label class="visually-hidden" for="phone-number">Telefone</label>
+            <input id="phone-number" type="tel" class="auth-input" placeholder="+55 DDD número" autocomplete="tel" />
+            <div class="auth-actions">
+              <button id="phone-send" class="auth-submit" type="button">Enviar código</button>
+            </div>
+            <div class="auth-input-row">
+              <label class="visually-hidden" for="phone-code">Código</label>
+              <input id="phone-code" type="text" class="auth-input" placeholder="Código SMS" inputmode="numeric" />
+            </div>
+            <div class="auth-actions">
+              <button id="phone-verify" class="auth-submit" type="button">Verificar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-separator" role="separator"><span>ou</span></div>
+
+        <form id="auth-email-form" class="auth-form" novalidate>
+          <label class="visually-hidden" for="auth-email">Endereço de e-mail</label>
+          <div class="auth-input-row">
+            <input id="auth-email" type="email" class="auth-input" placeholder="Endereço de e-mail" required />
+          </div>
+          <button id="auth-continue" class="auth-submit" type="submit">Continuar</button>
+        </form>
+
+        <div class="auth-links">
+          <button id="link-signup" class="auth-link" type="button">Criar novo usuário</button>
+          <span class="sep">•</span>
+          <button id="link-recover" class="auth-link" type="button">Recuperar senha</button>
+        </div>
+
+        <!-- Seção de cadastro -->
+        <section id="signup-section" class="auth-section" hidden>
+          <h2 class="auth-section-title">Criar conta</h2>
+          <form id="signup-form" novalidate>
+            <input id="signup-name" class="auth-input" type="text" placeholder="Seu nome" required />
+            <input id="signup-email" class="auth-input" type="email" placeholder="Seu e-mail" required />
+            <input id="signup-password" class="auth-input" type="password" placeholder="Senha" required />
+            <div class="auth-actions">
+              <button id="signup-back" class="btn-light auth-inline-btn" type="button">Voltar</button>
+              <button id="signup-submit" class="auth-submit" type="submit">Criar conta</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Seção de recuperação -->
+        <section id="recover-section" class="auth-section" hidden>
+          <h2 class="auth-section-title">Recuperar senha</h2>
+          <form id="recover-form" novalidate>
+            <input id="recover-email" class="auth-input" type="email" placeholder="Seu e-mail" required />
+            <div class="auth-actions">
+              <button id="recover-back" class="btn-light auth-inline-btn" type="button">Voltar</button>
+              <button id="recover-submit" class="auth-submit" type="submit">Enviar link</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
