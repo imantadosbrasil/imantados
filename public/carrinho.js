@@ -242,3 +242,4 @@ function calculateShipping(cepDigits, subtotal, itemsCount) {
 
   return { cep: cepDigits, price, eta };
 }
+
