@@ -1733,10 +1733,32 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="ig-designer">
           <div class="x-preview">
             <div id="igCard" class="x-card ig-card" style="width:65mm;height:90mm;background-image:url('/assets/modelo%20foto%20instagram.png');background-size:cover;background-position:center; position:relative;">
-              <div id="igBadge" class="ig-badge" style="position:absolute;left:6mm;top:6mm;width:12mm;height:12mm;border-radius:50%;overflow:hidden;background:#a78bfa;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.18);">Bate Foto?</div>
-              <div id="igPhoto" class="ig-photo" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38mm;height:38mm;border-radius:12px;overflow:hidden;background:#e5e7eb;"></div>
-              <div id="igHandle" class="ig-handle" style="position:absolute;left:50%;top:68mm;transform:translateX(-50%);background:rgba(255,255,255,.85);padding:4px 8px;border-radius:10px;font-size:14px;">@nome_usuario</div>
-              <div id="igMessage" class="ig-message" style="position:absolute;left:50%;top:74mm;transform:translateX(-50%);background:rgba(255,255,255,.85);padding:6px 10px;border-radius:10px;font-size:14px;max-width:58mm;text-align:center;">Cliente aqui...</div>
+              <div class="ig-top" style="position:absolute;left:4mm;top:4mm;right:4mm;height:12mm;display:flex;align-items:center;gap:4mm;">
+                <div id="igBadge" class="ig-badge" style="width:12mm;height:12mm;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#9333ea,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:pointer;">Avatar</div>
+                <div style="display:flex;align-items:center;gap:2mm;flex:1;">
+                  <div id="igUser" style="font-weight:600">@Nome_usuário</div>
+                  <div title="verificado" style="width:4mm;height:4mm;border-radius:50%;background:#0ea5e9;display:flex;align-items:center;justify-content:center;">
+                    <svg viewBox="0 0 24 24" width="10" height="10" fill="#fff"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l8.1-8.1 1.4 1.4z"/></svg>
+                  </div>
+                </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:3mm;">
+                  <div class="pill" style="border:1px solid #999;border-radius:999px;padding:2px 6px;color:#111;font-size:11px;background:#f3f4f6">@imantados</div>
+                  <div class="menu" aria-label="mais">⋯</div>
+                </div>
+              </div>
+              <div id="igPhoto" class="ig-photo" style="position:absolute;left:4mm;right:4mm;top:18mm;bottom:26mm;border-radius:6mm;background:#f97316;display:grid;place-items:center;overflow:hidden;cursor:pointer;">
+                <div style="color:#2f2f2f;font-size:16px;text-align:center;line-height:1.3">foto<br>usuario</div>
+              </div>
+              <div id="igMessage" class="ig-message" style="position:absolute;left:4mm;right:20mm;bottom:18mm;color:#111;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Mensagem do Cliente aqui....</div>
+              <div class="ig-bottom" style="position:absolute;left:4mm;right:4mm;bottom:8mm;height:14mm;display:grid;grid-template-columns:1fr auto;gap:3mm;align-items:center;">
+                <div style="display:flex;align-items:center;gap:6mm;color:#111;font-size:12px;">
+                  <div style="display:flex;align-items:center;gap:2mm"><span>♡</span><span>5.864</span></div>
+                  <div style="display:flex;align-items:center;gap:2mm"><span>💬</span><span>328</span></div>
+                  <div style="display:flex;align-items:center;gap:2mm"><span>🔁</span><span>30</span></div>
+                  <div style="display:flex;align-items:center;gap:2mm"><span>🎞️</span><span>1.624</span></div>
+                </div>
+                <div style="text-align:right;color:#9ca3af;font-size:11px">...mais</div>
+              </div>
             </div>
           </div>
           <form class="x-form" autocomplete="off">
@@ -1761,9 +1783,10 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.querySelector('#igCancel').addEventListener('click', close);
     const bind = (sel, cb) => { const el = overlay.querySelector(sel); if (el) el.addEventListener('input', cb); };
     const inHandleEl = overlay.querySelector('#inIgHandle'); if (inHandleEl) inHandleEl.setAttribute('maxlength','24');
-    const inMsgEl = overlay.querySelector('#inIgMsg'); if (inMsgEl) inMsgEl.setAttribute('maxlength','120');
-    bind('#inIgHandle', (e) => overlay.querySelector('#igHandle').textContent = (e.target.value || '@nome_usuario').slice(0,24));
-    bind('#inIgMsg', (e) => overlay.querySelector('#igMessage').textContent = (e.target.value || '').slice(0,120));
+    const inMsgEl = overlay.querySelector('#inIgMsg'); if (inMsgEl) inMsgEl.setAttribute('maxlength','64');
+    bind('#inIgHandle', (e) => { const t=(e.target.value || '@nome_usuario').slice(0,24); const h=overlay.querySelector('#igUser'); if (h) h.textContent=t; });
+    const limitCaption = (s) => { const max=64; return (s||'').length>max ? (s||'').slice(0,max-1)+'…' : (s||''); };
+    bind('#inIgMsg', (e) => { const m=overlay.querySelector('#igMessage'); if (m) m.textContent = limitCaption(e.target.value || ''); });
     const inAvatar = overlay.querySelector('#inIgAvatar');
     if (inAvatar) {
       inAvatar.addEventListener('change', async () => {
