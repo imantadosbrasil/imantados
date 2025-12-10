@@ -1732,7 +1732,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <header class="modal-header"><h2 class="modal-title">Criar seu Íma no estilo do Instagram</h2><button class="modal-close" type="button">×</button></header>
         <div class="ig-designer">
           <div class="x-preview">
-            <div id="igCard" class="x-card ig-card" style="width:65mm;height:90mm;background:#fff;position:relative;border:1px solid #111;border-radius:10px;">
+            <div id="igCard" class="x-card ig-card" style="width:65mm;height:90mm;background-image:url('/assets/INSTAGRAM/modelo%20foto%20instagram.svg');background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;border-radius:10px;">
               <div class="ig-top" style="position:absolute;left:4mm;top:4mm;right:4mm;height:12mm;display:flex;align-items:center;gap:4mm;">
                 <div id="igBadge" class="ig-badge" style="width:12mm;height:12mm;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#9333ea,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:pointer;">Avatar</div>
                 <div style="display:flex;align-items:center;gap:2mm;flex:1;">
