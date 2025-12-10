@@ -1746,7 +1746,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <div class="menu" aria-label="mais">⋯</div>
                 </div>
               </div>
-              <div id="igPhoto" class="ig-photo" style="position:absolute;left:4.5mm;top:10mm;width:56mm;height:70mm;border-radius:6mm;background:#f97316;display:grid;place-items:center;overflow:hidden;cursor:pointer;">
+              <div id="igPhoto" class="ig-photo" style="position:absolute;left:44.5mm;top:10mm;width:56mm;height:70mm;border-radius:6mm;background:#f97316;display:grid;place-items:center;overflow:hidden;cursor:pointer;">
                 <div style="color:#2f2f2f;font-size:16px;text-align:center;line-height:1.3">foto<br>usuario</div>
               </div>
               <div id="igMessage" class="ig-message" style="position:absolute;left:4mm;right:20mm;bottom:18mm;color:#111;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Mensagem do Cliente aqui....</div>
