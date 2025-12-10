@@ -7,6 +7,7 @@
     { "src": "styles/**", "use": "@vercel/static" },
     { "src": "scripts/**", "use": "@vercel/static" },
     { "src": "cart-count.js", "use": "@vercel/static" },
+    { "src": "carrinho.js", "use": "@vercel/static" },
     { "src": "main.js", "use": "@vercel/static" },
     { "src": "auth-status.js", "use": "@vercel/static" },
     { "src": "auth.config.js", "use": "@vercel/static" },
