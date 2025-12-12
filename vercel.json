@@ -9,6 +9,7 @@
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/", "has": [{"type": "query", "key": "topic"}], "destination": "/api/mp-webhook" }
   ],
+  
   "headers": [
     {
       "source": "/api/(.*)",
