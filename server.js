@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const port = process.env.PORT ? Number(process.env.PORT) : 4173;
+const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 const root = __dirname;
 const enableLiveReload = process.env.LIVERELOAD === '1';
 
@@ -211,6 +211,212 @@ const server = http.createServer((req, res) => {
           .filter(f => allowed.has(path.extname(f).toLowerCase()))
           .map(f => ({ name: f, url: `/assets/FRASES/${encodeURI(f)}` }));
         return send(res, 200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(list));
+      });
+      return;
+    }
+    // API Mercado Pago - Criar pagamento Pix
+    if (url === '/api/mp-create-pix') {
+      if (req.method !== 'POST') {
+        return send(res, 405, { 'Content-Type': 'text/plain; charset=utf-8' }, 'Method Not Allowed');
+      }
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', async () => {
+        try {
+          const handler = require('./api/mp-create-pix.js');
+          const mockReq = { method: 'POST', body: body ? JSON.parse(body) : {}, headers: req.headers, query: {} };
+          const mockRes = {
+            status: (code) => ({
+              json: (data) => send(res, code, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+              send: (data) => send(res, code, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+              end: () => res.end()
+            }),
+            json: (data) => send(res, 200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+            send: (data) => send(res, 200, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+            writeHead: res.writeHead.bind(res),
+            write: res.write.bind(res),
+            end: res.end.bind(res),
+            setHeader: res.setHeader.bind(res),
+            getHeader: res.getHeader.bind(res),
+            removeHeader: res.removeHeader.bind(res)
+          };
+          await handler(mockReq, mockRes);
+        } catch (e) {
+          send(res, 500, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify({ error: e.message }));
+        }
+      });
+      return;
+    }
+    // API Mercado Pago - Criar pagamento Boleto
+    if (url === '/api/mp-create-boleto') {
+      if (req.method !== 'POST') {
+        return send(res, 405, { 'Content-Type': 'text/plain; charset=utf-8' }, 'Method Not Allowed');
+      }
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', async () => {
+        try {
+          const handler = require('./api/mp-create-boleto.js');
+          const mockReq = { method: 'POST', body: body ? JSON.parse(body) : {}, headers: req.headers, query: {} };
+          const mockRes = {
+            status: (code) => ({
+              json: (data) => send(res, code, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+              send: (data) => send(res, code, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+              end: () => res.end()
+            }),
+            json: (data) => send(res, 200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+            send: (data) => send(res, 200, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+            writeHead: res.writeHead.bind(res),
+            write: res.write.bind(res),
+            end: res.end.bind(res),
+            setHeader: res.setHeader.bind(res),
+            getHeader: res.getHeader.bind(res),
+            removeHeader: res.removeHeader.bind(res)
+          };
+          await handler(mockReq, mockRes);
+        } catch (e) {
+          send(res, 500, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify({ error: e.message }));
+        }
+      });
+      return;
+    }
+    // API Mercado Pago - Consultar status do pagamento
+    if (url === '/api/mp-payment-status') {
+      if (req.method !== 'GET') {
+        return send(res, 405, { 'Content-Type': 'text/plain; charset=utf-8' }, 'Method Not Allowed');
+      }
+      (async () => {
+        try {
+          const handler = require('./api/mp-payment-status.js');
+          const urlParts = req.url.split('?');
+          const queryString = urlParts[1] || '';
+          const query = {};
+          queryString.split('&').forEach(param => {
+            const [key, value] = param.split('=');
+            if (key) query[key] = decodeURIComponent(value || '');
+          });
+          const mockReq = { method: 'GET', body: {}, headers: req.headers, query };
+          const mockRes = {
+            status: (code) => ({
+              json: (data) => send(res, code, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+              send: (data) => send(res, code, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+              end: () => res.end()
+            }),
+            json: (data) => send(res, 200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+            send: (data) => send(res, 200, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+            writeHead: res.writeHead.bind(res),
+            write: res.write.bind(res),
+            end: res.end.bind(res),
+            setHeader: res.setHeader.bind(res),
+            getHeader: res.getHeader.bind(res),
+            removeHeader: res.removeHeader.bind(res)
+          };
+          await handler(mockReq, mockRes);
+        } catch (e) {
+          send(res, 500, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify({ error: e.message }));
+        }
+      })();
+      return;
+    }
+    // API Mercado Pago - Obter chave pública
+    if (url === '/api/mp-config') {
+      if (req.method !== 'GET') {
+        return send(res, 405, { 'Content-Type': 'text/plain; charset=utf-8' }, 'Method Not Allowed');
+      }
+      (async () => {
+        try {
+          const handler = require('./api/mp-config.js');
+          const mockReq = { method: 'GET', body: {}, headers: req.headers, query: {} };
+          const mockRes = {
+            status: (code) => ({
+              json: (data) => send(res, code, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+              send: (data) => send(res, code, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+              end: () => res.end()
+            }),
+            json: (data) => send(res, 200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+            send: (data) => send(res, 200, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+            writeHead: res.writeHead.bind(res),
+            write: res.write.bind(res),
+            end: res.end.bind(res),
+            setHeader: res.setHeader.bind(res),
+            getHeader: res.getHeader.bind(res),
+            removeHeader: res.removeHeader.bind(res)
+          };
+          await handler(mockReq, mockRes);
+        } catch (e) {
+          send(res, 500, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify({ error: e.message }));
+        }
+      })();
+      return;
+    }
+    // API Mercado Pago - Consultar parcelas
+    if (url.startsWith('/api/mp-installments')) {
+      if (req.method !== 'GET' && req.method !== 'POST') {
+        return send(res, 405, { 'Content-Type': 'text/plain; charset=utf-8' }, 'Method Not Allowed');
+      }
+      (async () => {
+        try {
+          const handler = require('./api/mp-installments.js');
+          const urlParts = req.url.split('?');
+          const queryString = urlParts[1] || '';
+          const query = {};
+          queryString.split('&').forEach(param => {
+            const [key, value] = param.split('=');
+            if (key) query[key] = decodeURIComponent(value || '');
+          });
+          const mockReq = { method: req.method, body: {}, headers: req.headers, query };
+          const mockRes = {
+            status: (code) => ({
+              json: (data) => send(res, code, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+              send: (data) => send(res, code, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+              end: () => res.end()
+            }),
+            json: (data) => send(res, 200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+            send: (data) => send(res, 200, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+            writeHead: res.writeHead.bind(res),
+            write: res.write.bind(res),
+            end: res.end.bind(res),
+            setHeader: res.setHeader.bind(res),
+            getHeader: res.getHeader.bind(res),
+            removeHeader: res.removeHeader.bind(res)
+          };
+          await handler(mockReq, mockRes);
+        } catch (e) {
+          send(res, 500, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify({ error: e.message }));
+        }
+      })();
+      return;
+    }
+    // API Mercado Pago - Processar pagamento com cartão
+    if (url === '/api/mp-process-payment') {
+      if (req.method !== 'POST') {
+        return send(res, 405, { 'Content-Type': 'text/plain; charset=utf-8' }, 'Method Not Allowed');
+      }
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', async () => {
+        try {
+          const handler = require('./api/mp-process-payment.js');
+          const mockReq = { method: 'POST', body: body ? JSON.parse(body) : {}, headers: req.headers, query: {} };
+          const mockRes = {
+            status: (code) => ({
+              json: (data) => send(res, code, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+              send: (data) => send(res, code, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+              end: () => res.end()
+            }),
+            json: (data) => send(res, 200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(data)),
+            send: (data) => send(res, 200, { 'Content-Type': 'text/plain; charset=utf-8' }, data),
+            writeHead: res.writeHead.bind(res),
+            write: res.write.bind(res),
+            end: res.end.bind(res),
+            setHeader: res.setHeader.bind(res),
+            getHeader: res.getHeader.bind(res),
+            removeHeader: res.removeHeader.bind(res)
+          };
+          await handler(mockReq, mockRes);
+        } catch (e) {
+          send(res, 500, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify({ error: e.message }));
+        }
       });
       return;
     }

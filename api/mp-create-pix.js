@@ -11,8 +11,10 @@ module.exports = async (req, res) => {
     const accessToken = process.env.MP_ACCESS_TOKEN;
     if (!accessToken) { res.status(500).json({ error: 'MP_ACCESS_TOKEN não configurado' }); return; }
     const order = typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}');
-    const amount = Number(order.total || 0);
-    if (!(amount > 0)) { res.status(400).json({ error: 'Valor inválido para Pix' }); return; }
+    const rawAmount = Number(order.total || 0);
+    if (!(rawAmount > 0)) { res.status(400).json({ error: 'Valor inválido para Pix' }); return; }
+    // Mercado Pago exige valor com no máximo 2 casas decimais
+    const amount = Math.round(rawAmount * 100) / 100;
 
     const client = new MercadoPagoConfig({ accessToken });
     const fallbackEmail = (order.customer && order.customer.email) || order.email || 'no-reply@imantados.com.br';
@@ -25,11 +27,12 @@ module.exports = async (req, res) => {
       description: (order.items && order.items[0] && (order.items[0].name || order.items[0].title)) || 'Imantados',
       payment_method_id: 'pix',
       external_reference: order.id || order.external_reference,
-      notification_url: (process.env.MP_NOTIFICATION_URL || (base + '/api/mp-webhook')),
+      //notification_url: (process.env.MP_NOTIFICATION_URL || (base + '/api/mp-webhook')),
       payer: { email: fallbackEmail, first_name: fallbackName },
     };
     const pay = new Payment(client);
-    const { body: payment } = await pay.create({ body: paymentPayload });
+    const response = await pay.create({ body: paymentPayload });
+    const payment = response.body || response;
     const t = payment?.point_of_interaction?.transaction_data || {};
     res.status(200).json({ id: payment?.id, status: payment?.status, qr_code: t.qr_code, qr_code_base64: t.qr_code_base64, amount });
   } catch (err) {

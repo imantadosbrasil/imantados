@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recarga de Saldo - Pagamento Seguro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .payment-method {
+            transition: all 0.3s ease;
+        }
+        .payment-method.active {
+            border-color: #00a650;
+            background-color: #f0f9f4;
+        }
+        .gateway-option {
+            transition: all 0.3s ease;
+        }
+        .gateway-option.active {
+            border-color: #0066ff;
+            background-color: #f0f6ff;
+        }
+        .value-option {
+            transition: all 0.3s ease;
+        }
+        .value-option.active {
+            border-color: #16a34a;
+            background-color: #f0fdf4;
+            transform: scale(1.05);
+        }
+        .value-option:hover {
+            border-color: #22c55e;
+            background-color: #f7fef9;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen py-8">
+    
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-8 text-center">Adicionar Saldo à Conta</h1>
+        
+        <!-- Seleção de Valor -->
+        <div class="bg-gray-50 p-4 rounded-lg mb-8">
+            <h2 class="font-semibold text-gray-700 mb-4">Escolha o valor para adicionar ao saldo</h2>
+            
+            <!-- Opções de Valor Pré-definidas -->
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <div class="value-option border-2 border-gray-200 rounded-lg p-3 cursor-pointer text-center" onclick="selectValue(10.00)">
+                    <div class="text-lg font-bold text-green-600">R$ 10,00</div>
+                    <div class="text-xs text-gray-500">Valor mínimo</div>
+                </div>
+                <div class="value-option border-2 border-gray-200 rounded-lg p-3 cursor-pointer text-center" onclick="selectValue(20.00)">
+                    <div class="text-lg font-bold text-green-600">R$ 20,00</div>
+                    <div class="text-xs text-gray-500">Recomendado</div>
+                </div>
+                <div class="value-option border-2 border-gray-200 rounded-lg p-3 cursor-pointer text-center" onclick="selectValue(50.00)">
+                    <div class="text-lg font-bold text-green-600">R$ 50,00</div>
+                    <div class="text-xs text-gray-500">Melhor opção</div>
+                </div>
+            </div>
+            
+            <!-- Campo Valor Personalizado -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ou digite o valor desejado:</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2 text-gray-500">R$</span>
+                    <input type="number" id="customValue" placeholder="0,00" step="0.01" min="10" max="1000"
+                           class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                           onchange="selectCustomValue()" oninput="selectCustomValue()">
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Valor mínimo: R$ 10,00 | Valor máximo: R$ 1.000,00</p>
+            </div>
+            
+            <!-- Resumo -->
+            <div class="border-t pt-3">
+                <div class="flex justify-between items-center">
+                    <span class="font-medium text-gray-700">Valor selecionado:</span>
+                    <span id="selectedAmount" class="text-xl font-bold text-green-600">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between text-sm text-gray-600 mt-1">
+                    <span>Será adicionado ao seu saldo</span>
+                    <span id="finalAmount" class="font-medium">R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+
+        <form id="checkoutForm" class="space-y-6">
+            <!-- Dados Pessoais -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Dados Pessoais</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo *</label>
+                        <input type="text" id="fullName" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                        <input type="email" id="email" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Telefone *</label>
+                        <input type="tel" id="phone" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">CPF *</label>
+                        <input type="tel" id="cpf" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endereço -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Endereço</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">CEP *</label>
+                        <input type="tel" id="zipCode" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rua *</label>
+                        <input type="text" id="street" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número *</label>
+                        <input type="text" id="number" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Complemento</label>
+                        <input type="text" id="complement" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bairro *</label>
+                        <input type="text" id="neighborhood" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cidade *</label>
+                        <input type="text" id="city" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estado *</label>
+                        <select id="state" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="">Selecione o estado</option>
+                            <option value="AC">Acre</option>
+                            <option value="AL">Alagoas</option>
+                            <option value="AP">Amapá</option>
+                            <option value="AM">Amazonas</option>
+                            <option value="BA">Bahia</option>
+                            <option value="CE">Ceará</option>
+                            <option value="DF">Distrito Federal</option>
+                            <option value="ES">Espírito Santo</option>
+                            <option value="GO">Goiás</option>
+                            <option value="MA">Maranhão</option>
+                            <option value="MT">Mato Grosso</option>
+                            <option value="MS">Mato Grosso do Sul</option>
+                            <option value="MG">Minas Gerais</option>
+                            <option value="PA">Pará</option>
+                            <option value="PB">Paraíba</option>
+                            <option value="PR">Paraná</option>
+                            <option value="PE">Pernambuco</option>
+                            <option value="PI">Piauí</option>
+                            <option value="RJ">Rio de Janeiro</option>
+                            <option value="RN">Rio Grande do Norte</option>
+                            <option value="RS">Rio Grande do Sul</option>
+                            <option value="RO">Rondônia</option>
+                            <option value="RR">Roraima</option>
+                            <option value="SC">Santa Catarina</option>
+                            <option value="SP">São Paulo</option>
+                            <option value="SE">Sergipe</option>
+                            <option value="TO">Tocantins</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gateway de Pagamento -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Gateway de Pagamento</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="gateway-option border-2 border-gray-200 rounded-lg p-4 cursor-pointer" onclick="selectGateway('mercadopago')">
+                        <div class="flex items-center justify-center flex-col">
+                            <input type="radio" id="mercadopago" name="gateway" value="mercadopago" class="mb-2" checked>
+                            <label for="mercadopago" class="cursor-pointer text-center">
+                                <div class="text-2xl mb-2">💳</div>
+                                <div class="font-medium">Mercado Pago</div>
+                                <div class="text-sm text-gray-500">Gateway completo</div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="gateway-option border-2 border-gray-200 rounded-lg p-4 cursor-pointer" onclick="selectGateway('pagbank')">
+                        <div class="flex items-center justify-center flex-col">
+                            <input type="radio" id="pagbank" name="gateway" value="pagbank" class="mb-2">
+                            <label for="pagbank" class="cursor-pointer text-center">
+                                <div class="text-2xl mb-2">🏦</div>
+                                <div class="font-medium">PagBank</div>
+                                <div class="text-sm text-gray-500">PagSeguro UOL</div>
+                                <div id="pagbankStatus" class="text-xs mt-1 text-yellow-600">Carregando...</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Método de Pagamento -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Método de Pagamento</h2>
+                <div class="space-y-3">
+                    <!-- PIX -->
+                    <div class="payment-method border-2 border-gray-200 rounded-lg p-4 cursor-pointer" onclick="selectPaymentMethod('pix')">
+                        <div class="flex items-center">
+                            <input type="radio" id="pix" name="paymentMethod" value="pix" class="mr-3">
+                            <label for="pix" class="flex items-center cursor-pointer">
+                                <span class="text-2xl mr-3">🏦</span>
+                                <div>
+                                    <div class="font-medium">PIX</div>
+                                    <div class="text-sm text-gray-500">Pagamento instantâneo</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Cartão de Crédito -->
+                    <div class="payment-method border-2 border-gray-200 rounded-lg p-4 cursor-pointer" onclick="selectPaymentMethod('credit_card')">
+                        <div class="flex items-center">
+                            <input type="radio" id="credit_card" name="paymentMethod" value="credit_card" class="mr-3">
+                            <label for="credit_card" class="flex items-center cursor-pointer">
+                                <span class="text-2xl mr-3">💳</span>
+                                <div>
+                                    <div class="font-medium">Cartão de Crédito</div>
+                                    <div class="text-sm text-gray-500">Visa, Mastercard, Elo</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Boleto -->
+                    <div class="payment-method border-2 border-gray-200 rounded-lg p-4 cursor-pointer" onclick="selectPaymentMethod('boleto')">
+                        <div class="flex items-center">
+                            <input type="radio" id="boleto" name="paymentMethod" value="boleto" class="mr-3">
+                            <label for="boleto" class="flex items-center cursor-pointer">
+                                <span class="text-2xl mr-3">🧾</span>
+                                <div>
+                                    <div class="font-medium">Boleto Bancário</div>
+                                    <div class="text-sm text-gray-500">Vencimento em 3 dias úteis</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos específicos do cartão (inicialmente ocultos) -->
+            <div id="cardFields" class="hidden space-y-4">
+                <h3 class="text-md font-semibold text-gray-800">Dados do Cartão</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número do Cartão</label>
+                        <div class="relative">
+                            <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000"
+                                   class="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <div id="cardBrand" class="absolute right-3 top-2 w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs font-bold text-gray-600">
+                                ?
+                            </div>
+                        </div>
+                        <div id="cardNumberError" class="text-red-500 text-xs mt-1 hidden"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome no Cartão</label>
+                        <input type="text" id="cardName"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <div id="cardNameError" class="text-red-500 text-xs mt-1 hidden"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">CVV</label>
+                        <input type="text" id="cardCvv" placeholder="000" maxlength="4"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <div id="cardCvvError" class="text-red-500 text-xs mt-1 hidden"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mês/Ano</label>
+                        <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <div id="cardExpiryError" class="text-red-500 text-xs mt-1 hidden"></div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Parcelas
+                            <span id="installmentsLoading" class="text-xs text-gray-500 ml-2 hidden">Carregando...</span>
+                        </label>
+                        <select id="installments" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="">Selecione o número do cartão primeiro</option>
+                        </select>
+                        <div id="installmentsError" class="text-red-500 text-xs mt-1 hidden"></div>
+                    </div>
+                </div>
+                
+                <!-- Informações de segurança -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div class="flex items-center text-blue-800">
+                        <span class="text-sm">🔒</span>
+                        <span class="text-xs ml-2">Seus dados estão protegidos com criptografia SSL</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão de Finalizar -->
+            <div class="pt-6">
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                    Adicionar Saldo à Conta
+                </button>
+                <p class="text-center text-sm text-gray-500 mt-2">Pagamento 100% seguro e protegido</p>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Variáveis globais para armazenar o valor selecionado
+        let selectedValue = 0;
+
+        // Variáveis globais para Mercado Pago
+        let mp = null;
+        let cardToken = null;
+        let paymentMethodId = null;
+        let issuerId = null;
+        let cardBin = null;
+        
+        // Variáveis globais para PagBank
+        let pagBankPublicKey = null;
+        let pagBankSDKLoaded = false;
+
+        // Função para selecionar valor pré-definido
+        function selectValue(amount) {
+            // Remove active class de todas as opções
+            document.querySelectorAll('.value-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Adiciona active class à opção selecionada
+            event.currentTarget.classList.add('active');
+            
+            // Limpa o campo personalizado
+            document.getElementById('customValue').value = '';
+            
+            // Atualiza valor selecionado
+            selectedValue = amount;
+            updateAmountDisplay();
+        }
+
+        // Função para selecionar valor personalizado
+        function selectCustomValue() {
+            const customInput = document.getElementById('customValue');
+            const value = parseFloat(customInput.value) || 0;
+            
+            // Remove active class de todas as opções pré-definidas
+            document.querySelectorAll('.value-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Validação
+            if (value < 10) {
+                selectedValue = 0;
+                if (value > 0) {
+                    customInput.setCustomValidity('Valor mínimo é R$ 10,00');
+                } else {
+                    customInput.setCustomValidity('');
+                }
+            } else if (value > 1000) {
+                selectedValue = 0;
+                customInput.setCustomValidity('Valor máximo é R$ 1.000,00');
+            } else {
+                selectedValue = value;
+                customInput.setCustomValidity('');
+            }
+            
+            updateAmountDisplay();
+        }
+
+        // Função para atualizar a exibição do valor
+        function updateAmountDisplay() {
+            const selectedAmountElement = document.getElementById('selectedAmount');
+            const finalAmountElement = document.getElementById('finalAmount');
+            
+            const formattedAmount = selectedValue > 0 ? 
+                'R$ ' + selectedValue.toFixed(2).replace('.', ',') : 'R$ 0,00';
+            
+            selectedAmountElement.textContent = formattedAmount;
+            finalAmountElement.textContent = formattedAmount;
+            
+            // Recarrega parcelas baseado no gateway selecionado
+            const gateway = document.querySelector('input[name="gateway"]:checked');
+            if (gateway && gateway.value === 'mercadopago') {
+                tryLoadInstallments();
+            } else if (gateway && gateway.value === 'pagbank') {
+                // Para PagBank, verifica se há cartão informado para atualizar parcelas
+                const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                if (cardNumber.length >= 6 && selectedValue > 0) {
+                    updateInstallmentOptions();
+                } else if (selectedValue > 0) {
+                    // Se não há cartão mas há valor, mostra parcelas básicas
+                    updateInstallmentOptions();
+                }
+            } else {
+                // Para outros casos ou quando não há gateway selecionado
+                updateInstallmentOptions();
+            }
+        }
+
+        // Função para atualizar opções de parcelas baseado no valor
+        function updateInstallmentOptions() {
+            if (selectedValue <= 0) return;
+            
+            const installmentsSelect = document.getElementById('installments');
+            installmentsSelect.innerHTML = '';
+            
+            // Calcula parcelas disponíveis (máximo 12x)
+            const maxInstallments = Math.min(12, Math.floor(selectedValue / 5)); // Mínimo R$ 5 por parcela
+            
+            for (let i = 1; i <= maxInstallments; i++) {
+                const installmentAmount = selectedValue / i;
+                const option = document.createElement('option');
+                option.value = i;
+                
+                if (i === 1) {
+                    option.textContent = `1x de R$ ${installmentAmount.toFixed(2).replace('.', ',')} sem juros`;
+                } else if (i <= 6) {
+                    option.textContent = `${i}x de R$ ${installmentAmount.toFixed(2).replace('.', ',')} sem juros`;
+                } else {
+                    // Simula juros para parcelas acima de 6x (apenas exemplo)
+                    const withInterest = installmentAmount * 1.1;
+                    option.textContent = `${i}x de R$ ${withInterest.toFixed(2).replace('.', ',')} com juros`;
+                }
+                
+                installmentsSelect.appendChild(option);
+            }
+        }
+
+        // Função para selecionar gateway de pagamento
+        function selectGateway(gateway) {
+            // Remove active class de todos os gateways
+            document.querySelectorAll('.gateway-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Adiciona active class ao gateway selecionado
+            event.currentTarget.classList.add('active');
+            
+            // Marca o radio button
+            document.getElementById(gateway).checked = true;
+            
+            // Atualiza parcelas quando gateway muda
+            updateInstallmentsOnGatewayChange(gateway);
+        }
+        
+        // Função para atualizar parcelas quando gateway muda
+        function updateInstallmentsOnGatewayChange(gateway) {
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+            
+            // Só atualiza se método de pagamento for cartão de crédito e houver valor selecionado
+            if (paymentMethod && paymentMethod.value === 'credit_card' && selectedValue > 0) {
+                if (gateway === 'mercadopago') {
+                    // Para Mercado Pago, tenta carregar parcelas específicas se cartão estiver preenchido
+                    if (cardNumber.length >= 6) {
+                        // Força revalidação do cartão para buscar parcelas do MP
+                        validateCardAndGetBrand(cardNumber);
+                    } else {
+                        // Se não há cartão, limpa parcelas
+                        clearInstallments();
+                    }
+                } else if (gateway === 'pagbank') {
+                    // Para PagBank, sempre usa parcelas básicas
+                    updateInstallmentOptions();
+                }
+            }
+        }
+
+        // Função para selecionar método de pagamento
+        function selectPaymentMethod(method) {
+            // Remove active class de todos os métodos
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Adiciona active class ao método selecionado
+            event.currentTarget.classList.add('active');
+            
+            // Marca o radio button
+            document.getElementById(method).checked = true;
+            
+            // Mostra/esconde campos do cartão
+            const cardFields = document.getElementById('cardFields');
+            if (method === 'credit_card') {
+                cardFields.classList.remove('hidden');
+                
+                // Atualiza parcelas se há valor selecionado
+                if (selectedValue > 0) {
+                    const gateway = document.querySelector('input[name="gateway"]:checked');
+                    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                    
+                    if (gateway && gateway.value === 'pagbank') {
+                        // Para PagBank, usa parcelas básicas
+                        updateInstallmentOptions();
+                    } else if (gateway && gateway.value === 'mercadopago' && cardNumber.length >= 6) {
+                        // Para Mercado Pago, tenta carregar parcelas específicas se cartão estiver preenchido
+                        tryLoadInstallments();
+                    } else {
+                        // Fallback para parcelas básicas
+                        updateInstallmentOptions();
+                    }
+                }
+            } else {
+                cardFields.classList.add('hidden');
+            }
+        }
+
+        // Formatação de campos
+        document.getElementById('cpf').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            e.target.value = value;
+        });
+
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{2})(\d)/, '($1) $2');
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = value;
+        });
+
+        document.getElementById('zipCode').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = value;
+        });
+
+        // Formatação e validação do cartão para Mercado Pago
+        document.getElementById('cardNumber').addEventListener('input', async function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{4})(\d)/, '$1 $2');
+            value = value.replace(/(\d{4})(\d)/, '$1 $2');
+            value = value.replace(/(\d{4})(\d)/, '$1 $2');
+            e.target.value = value;
+            
+            // Limpa erros anteriores
+            hideFieldError('cardNumber');
+            
+            // Valida e detecta bandeira para Mercado Pago
+            const gateway = document.querySelector('input[name="gateway"]:checked');
+            
+            if (gateway && gateway.value === 'mercadopago') {
+                const cleanNumber = value.replace(/\s/g, '');
+                
+                if (cleanNumber.length >= 6) {
+                    await validateCardAndGetBrand(cleanNumber);
+                } else {
+                    // Limpa variáveis se número for insuficiente
+                    paymentMethodId = null;
+                    issuerId = null;
+                    cardBin = null;
+                    updateCardBrand('unknown');
+                    clearInstallments();
+                }
+            } else if (gateway && gateway.value === 'pagbank') {
+                // Para PagBank, apenas atualiza as parcelas básicas quando há valor selecionado
+                const cleanNumber = value.replace(/\s/g, '');
+                
+                if (cleanNumber.length >= 6 && selectedValue > 0) {
+                    // Atualiza parcelas básicas para PagBank
+                    updateInstallmentOptions();
+                } else if (cleanNumber.length < 6) {
+                    // Limpa parcelas se número for insuficiente
+                    clearInstallments();
+                }
+            }
+        });
+
+        document.getElementById('cardExpiry').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{2})(\d)/, '$1/$2');
+            e.target.value = value;
+            
+            // Valida data de expiração
+            hideFieldError('cardExpiry');
+            if (value.length === 5) {
+                validateExpiryDate(value);
+            }
+        });
+
+        document.getElementById('cardCvv').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value;
+            hideFieldError('cardCvv');
+        });
+
+        document.getElementById('cardName').addEventListener('input', function(e) {
+            hideFieldError('cardName');
+        });
+
+        // ======== FUNÇÕES MERCADO PAGO ========
+        
+        // Inicializa Mercado Pago
+        async function initializeMercadoPago() {
+            try {
+                const response = await fetch('get_mp_public_key.php');
+                const result = await response.json();
+                
+                if (result.success) {
+                    mp = new MercadoPago(result.public_key, {
+                        locale: 'pt-BR'
+                    });
+                    
+                    return true;
+                } else {
+                    console.error('Erro ao obter chave pública do MP:', result.error);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Erro ao inicializar Mercado Pago:', error);
+                return false;
+            }
+        }
+        
+        // Valida cartão e detecta bandeira
+        async function validateCardAndGetBrand(cardNumber) {
+            if (!mp || cardNumber.length < 6) return;
+            
+            try {
+                // Armazena o BIN para uso posterior
+                cardBin = cardNumber.substring(0, 6);
+                
+                // Detecta método de pagamento (bandeira)
+                const paymentMethods = await mp.getPaymentMethods({ bin: cardBin });
+                
+                if (paymentMethods.results && paymentMethods.results.length > 0) {
+                    const paymentMethod = paymentMethods.results[0];
+                    paymentMethodId = paymentMethod.id;
+                    
+                    // Atualiza ícone da bandeira
+                    updateCardBrand(paymentMethod.id);
+                    
+                    // Busca instituições emissoras
+                    await getCardIssuers(paymentMethodId, cardBin);
+                    
+                    console.log('Método de pagamento detectado:', paymentMethod.id);
+                } else {
+                    // Cartão não reconhecido - limpa variáveis
+                    paymentMethodId = null;
+                    issuerId = null;
+                    cardBin = null;
+                    showFieldError('cardNumber', 'Cartão não reconhecido');
+                    updateCardBrand('unknown');
+                    clearInstallments();
+                }
+            } catch (error) {
+                console.error('Erro ao validar cartão:', error);
+                // Limpa variáveis em caso de erro
+                paymentMethodId = null;
+                issuerId = null;
+                cardBin = null;
+                showFieldError('cardNumber', 'Erro ao validar cartão');
+                updateCardBrand('unknown');
+            }
+        }
+        
+        // Busca instituições emissoras
+        async function getCardIssuers(paymentMethodId, bin) {
+            try {
+                const issuers = await mp.getIssuers({ paymentMethodId, bin });
+                
+                if (issuers && issuers.length > 0) {
+                    // Se há apenas um emissor, seleciona automaticamente
+                    if (issuers.length === 1) {
+                        issuerId = issuers[0].id;
+                        
+                        // Tenta carregar parcelas após detectar emissor
+                        tryLoadInstallments();
+                    } else {
+                        // Múltiplos emissores - pode implementar seleção manual se necessário
+                        issuerId = issuers[0].id; // Pega o primeiro por padrão
+                        tryLoadInstallments();
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao buscar emissores:', error);
+            }
+        }
+        
+        // Função auxiliar para tentar carregar parcelas quando todas as condições estão prontas
+        function tryLoadInstallments() {
+            const gateway = document.querySelector('input[name="gateway"]:checked');
+            if (gateway && gateway.value === 'mercadopago' && 
+                mp && paymentMethodId && issuerId && cardBin && selectedValue > 0) {
+                getInstallments();
+            }
+        }
+        
+        // Busca opções de parcelas
+        async function getInstallments() {
+            if (!mp || !paymentMethodId || !issuerId || !cardBin || selectedValue <= 0) return;
+            
+            try {
+                showInstallmentsLoading(true);
+                
+                const installments = await mp.getInstallments({
+                    amount: selectedValue.toString(),
+                    locale: 'pt-BR',
+                    processingMode: 'aggregator',
+                    paymentMethodId: paymentMethodId,
+                    issuerId: issuerId,
+                    bin: cardBin
+                });
+                
+                showInstallmentsLoading(false);
+                
+                if (installments && installments.length > 0) {
+                    populateInstallments(installments[0].payer_costs);
+                } else {
+                    clearInstallments();
+                    showFieldError('installments', 'Não foi possível carregar as parcelas');
+                }
+            } catch (error) {
+                console.error('Erro ao buscar parcelas:', error);
+                showInstallmentsLoading(false);
+                showFieldError('installments', 'Erro ao carregar parcelas');
+            }
+        }
+        
+        // Popula select de parcelas
+        function populateInstallments(payerCosts) {
+            const installmentsSelect = document.getElementById('installments');
+            installmentsSelect.innerHTML = '';
+            
+            payerCosts.forEach(cost => {
+                const option = document.createElement('option');
+                option.value = cost.installments;
+                option.dataset.totalAmount = cost.total_amount;
+                option.dataset.installmentAmount = cost.installment_amount;
+                
+                const installmentAmount = parseFloat(cost.installment_amount);
+                const totalAmount = parseFloat(cost.total_amount);
+                const isInterestFree = cost.installment_rate === 0;
+                
+                let text = `${cost.installments}x de R$ ${installmentAmount.toFixed(2).replace('.', ',')}`;
+                
+                if (isInterestFree) {
+                    text += ' sem juros';
+                } else {
+                    text += ` (Total: R$ ${totalAmount.toFixed(2).replace('.', ',')})`;
+                }
+                
+                option.textContent = text;
+                installmentsSelect.appendChild(option);
+            });
+            
+            // Seleciona primeira opção por padrão
+            if (payerCosts.length > 0) {
+                installmentsSelect.selectedIndex = 0;
+            }
+        }
+        
+        // Atualiza ícone da bandeira do cartão
+        function updateCardBrand(brand) {
+            const cardBrandElement = document.getElementById('cardBrand');
+            const brandIcons = {
+                'visa': 'VISA',
+                'mastercard': 'MC', 
+                'elo': 'ELO',
+                'amex': 'AMEX',
+                'hipercard': 'HIPER',
+                'unknown': '?'
+            };
+            
+            const brandColors = {
+                'visa': 'bg-blue-600 text-white',
+                'mastercard': 'bg-red-600 text-white',
+                'elo': 'bg-yellow-500 text-black',
+                'amex': 'bg-green-600 text-white',
+                'hipercard': 'bg-orange-600 text-white',
+                'unknown': 'bg-gray-200 text-gray-600'
+            };
+            
+            cardBrandElement.textContent = brandIcons[brand] || '?';
+            cardBrandElement.className = `absolute right-3 top-2 w-8 h-6 rounded flex items-center justify-center text-xs font-bold ${brandColors[brand] || brandColors.unknown}`;
+        }
+        
+        // Cria token do cartão
+        async function createCardToken() {
+            if (!mp || !paymentMethodId) {
+                throw new Error('Mercado Pago não inicializado ou método de pagamento não detectado');
+            }
+            
+            const cardExpiry = document.getElementById('cardExpiry').value.split('/');
+            
+            const cardData = {
+                cardNumber: document.getElementById('cardNumber').value.replace(/\s/g, ''),
+                cardholderName: document.getElementById('cardName').value,
+                cardExpirationMonth: cardExpiry[0],
+                cardExpirationYear: '20' + cardExpiry[1],
+                securityCode: document.getElementById('cardCvv').value,
+                identificationType: 'CPF',
+                identificationNumber: document.getElementById('cpf').value.replace(/\D/g, '')
+            };
+            
+            try {
+                const token = await mp.createCardToken(cardData);
+                cardToken = token.id;
+                return token.id;
+            } catch (error) {
+                console.error('Erro ao criar token do cartão:', error);
+                throw new Error('Erro ao processar dados do cartão: ' + error.message);
+            }
+        }
+        
+        // Validações específicas
+        function validateExpiryDate(expiry) {
+            const [month, year] = expiry.split('/');
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear() % 100;
+            const currentMonth = currentDate.getMonth() + 1;
+            
+            const expMonth = parseInt(month);
+            const expYear = parseInt(year);
+            
+            if (expMonth < 1 || expMonth > 12) {
+                showFieldError('cardExpiry', 'Mês inválido');
+                return false;
+            }
+            
+            if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
+                showFieldError('cardExpiry', 'Cartão expirado');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Funções auxiliares
+        function showFieldError(fieldId, message) {
+            const errorElement = document.getElementById(fieldId + 'Error');
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+            }
+            
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.classList.add('border-red-500');
+            }
+        }
+        
+        function hideFieldError(fieldId) {
+            const errorElement = document.getElementById(fieldId + 'Error');
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+            }
+            
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.classList.remove('border-red-500');
+            }
+        }
+        
+        function showInstallmentsLoading(show) {
+            const loadingElement = document.getElementById('installmentsLoading');
+            if (loadingElement) {
+                if (show) {
+                    loadingElement.classList.remove('hidden');
+                } else {
+                    loadingElement.classList.add('hidden');
+                }
+            }
+        }
+        
+        function clearInstallments() {
+            const installmentsSelect = document.getElementById('installments');
+            installmentsSelect.innerHTML = '<option value="">Selecione o número do cartão primeiro</option>';
+        }
+        
+        // Valida dados do cartão para Mercado Pago
+        function validateMercadoPagoCardData() {
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const cardName = document.getElementById('cardName').value;
+            const cardCvv = document.getElementById('cardCvv').value;
+            const cardExpiry = document.getElementById('cardExpiry').value;
+            
+            let hasError = false;
+            
+            // Valida número do cartão
+            if (!cardNumber || cardNumber.length < 13) {
+                showFieldError('cardNumber', 'Número do cartão inválido');
+                hasError = true;
+            }
+            
+            // Valida nome
+            if (!cardName || cardName.trim().length < 2) {
+                showFieldError('cardName', 'Nome do portador é obrigatório');
+                hasError = true;
+            }
+            
+            // Valida CVV
+            if (!cardCvv || cardCvv.length < 3) {
+                showFieldError('cardCvv', 'CVV inválido');
+                hasError = true;
+            }
+            
+            // Valida data de expiração
+            if (!cardExpiry || cardExpiry.length !== 5 || !validateExpiryDate(cardExpiry)) {
+                if (!document.getElementById('cardExpiryError').classList.contains('hidden')) {
+                    // Erro já foi mostrado pela função validateExpiryDate
+                } else {
+                    showFieldError('cardExpiry', 'Data de expiração inválida');
+                }
+                hasError = true;
+            }
+            
+            // Valida se método de pagamento foi detectado
+            if (!paymentMethodId) {
+                showFieldError('cardNumber', 'Método de pagamento não reconhecido');
+                hasError = true;
+            }
+            
+            // Valida se parcelas foram selecionadas
+            const installmentsSelect = document.getElementById('installments');
+            if (!installmentsSelect.value) {
+                showFieldError('installments', 'Selecione o número de parcelas');
+                hasError = true;
+            }
+            
+            return !hasError;
+        }
+
+        // ======== FUNÇÕES PAGBANK ========
+
+        // Submissão do formulário - Integração com Mercado Pago
+        document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validação do valor
+            if (selectedValue <= 0) {
+                alert('Por favor, selecione um valor para adicionar ao saldo.');
+                return;
+            }
+            
+            if (selectedValue < 10) {
+                alert('O valor mínimo é R$ 10,00.');
+                return;
+            }
+            
+            if (selectedValue > 1000) {
+                alert('O valor máximo é R$ 1.000,00.');
+                return;
+            }
+            
+            const gateway = document.querySelector('input[name="gateway"]:checked');
+            if (!gateway) {
+                alert('Por favor, selecione um gateway de pagamento.');
+                return;
+            }
+            
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+            if (!paymentMethod) {
+                alert('Por favor, selecione um método de pagamento.');
+                return;
+            }
+
+            // Validação específica para cartão
+            if (paymentMethod.value === 'credit_card') {
+                const cardNumber = document.getElementById('cardNumber').value;
+                const cardName = document.getElementById('cardName').value;
+                const cardCvv = document.getElementById('cardCvv').value;
+                const cardExpiry = document.getElementById('cardExpiry').value;
+                
+                if (!cardNumber || !cardName || !cardCvv || !cardExpiry) {
+                    alert('Por favor, preencha todos os dados do cartão.');
+                    return;
+                }
+                
+                // Validação específica para PagBank
+                if (gateway.value === 'pagbank') {
+                    if (!pagBankSDKLoaded) {
+                        alert('SDK do PagBank não está carregado. Aguarde um momento e tente novamente.');
+                        return;
+                    }
+                    
+                    if (!pagBankPublicKey) {
+                        alert('Chave pública do PagBank não está disponível. Tente recarregar a página.');
+                        return;
+                    }
+                }
+            }
+
+            // Coleta dados do formulário
+            const formData = collectFormData();
+            
+            // Processa pagamento
+            processPayment(formData);
+        });
+
+        function collectFormData() {
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            const gateway = document.querySelector('input[name="gateway"]:checked').value;
+            const fullName = document.getElementById('fullName').value.split(' ');
+            const firstName = fullName[0] || '';
+            const lastName = fullName.slice(1).join(' ') || '';
+            
+            const data = {
+                // Campo obrigatório para o backend
+                paymentMethod: paymentMethod,
+                gateway: gateway, // Novo campo
+                
+                // Dados do produto - usando valor selecionado dinamicamente
+                amount: selectedValue,
+                description: `Recarga de saldo - R$ ${selectedValue.toFixed(2).replace('.', ',')}`,
+                
+                // Dados pessoais
+                payer: {
+                    email: document.getElementById('email').value,
+                    first_name: firstName,
+                    last_name: lastName,
+                    cpf: document.getElementById('cpf').value.replace(/\D/g, ''),
+                    phone: document.getElementById('phone').value.replace(/\D/g, ''),
+                    
+                    // Endereço (necessário para boleto)
+                    address: {
+                        zip_code: document.getElementById('zipCode').value.replace(/\D/g, ''),
+                        street_name: document.getElementById('street').value,
+                        street_number: document.getElementById('number').value,
+                        neighborhood: document.getElementById('neighborhood').value,
+                        city: document.getElementById('city').value,
+                        state: document.getElementById('state').value,
+                        complement: document.getElementById('complement').value || ''
+                    }
+                },
+                
+                // Dados específicos do método
+                installments: paymentMethod === 'credit_card' ? 
+                    parseInt(document.getElementById('installments').value) : 1
+            };
+
+            // Adiciona dados do cartão baseado no gateway
+            if (paymentMethod === 'credit_card') {
+                const cardExpiry = document.getElementById('cardExpiry').value.split('/');
+                
+                if (gateway === 'pagbank') {
+                    // Para PagBank, prepara dados para criptografia no frontend
+                    data.card_data = {
+                        holder: document.getElementById('cardName').value,
+                        number: document.getElementById('cardNumber').value.replace(/\s/g, ''),
+                        security_code: document.getElementById('cardCvv').value,
+                        exp_month: cardExpiry[0],
+                        exp_year: '20' + cardExpiry[1]
+                    };
+                } else {
+                    // Para Mercado Pago, usa token e dados de segurança
+                    data.token = cardToken; // Token criado pelo SDK
+                    data.payment_method_id = paymentMethodId; // ID do método detectado
+                    data.issuer_id = issuerId; // ID do emissor detectado
+                    data.device_id = window.MP_DEVICE_SESSION_ID; // Device ID para segurança
+                    
+                    // Dados do portador
+                    data.cardholder = {
+                        name: document.getElementById('cardName').value,
+                        identification: {
+                            type: 'CPF',
+                            number: document.getElementById('cpf').value.replace(/\D/g, '')
+                        }
+                    };
+                }
+            }
+
+            return data;
+        }
+
+        async function processPayment(data) {
+            const submitButton = document.querySelector('button[type="submit"]');
+            submitButton.textContent = 'Processando pagamento...';
+            submitButton.disabled = true;
+
+            try {
+                // Se for cartão de crédito, cria token baseado no gateway
+                if (data.paymentMethod === 'credit_card') {
+                    if (data.gateway === 'pagbank') {
+                        submitButton.textContent = 'Criptografando cartão...';
+                        
+                        // Valida dados do cartão
+                        const cardData = {
+                            holder: data.card_data.holder,
+                            number: data.card_data.number,
+                            expMonth: data.card_data.exp_month,
+                            expYear: data.card_data.exp_year,
+                            securityCode: data.card_data.security_code
+                        };
+                        
+                        // Validação prévia
+                        const validationErrors = validateCardData(cardData);
+                        if (validationErrors.length > 0) {
+                            throw new Error('Dados do cartão inválidos: ' + validationErrors.join(', '));
+                        }
+                        
+                        // Criptografa o cartão usando SDK do PagBank
+                        const encryptedCard = await encryptCardData(cardData);
+                        
+                        // Adiciona o cartão criptografado aos dados
+                        data.encrypted_card = encryptedCard;
+                        
+                        // Remove dados sensíveis do cartão que não devem ir para o backend
+                        delete data.card_data.number;
+                        
+                        console.log('Cartão criptografado com sucesso para PagBank');
+                    } else {
+                        // Para Mercado Pago, cria token do cartão
+                        submitButton.textContent = 'Criando token do cartão...';
+                        
+                        if (!mp) {
+                            throw new Error('Mercado Pago não foi inicializado');
+                        }
+                        
+                        // Valida dados antes de criar token
+                        if (!validateMercadoPagoCardData()) {
+                            throw new Error('Dados do cartão inválidos');
+                        }
+                        
+                        const token = await createCardToken();
+                        data.token = token;
+                        
+                        console.log('Token do cartão criado com sucesso para Mercado Pago');
+                    }
+                    
+                    submitButton.textContent = 'Processando pagamento...';
+                }
+
+                // Envia requisição para o backend
+                const response = await fetch('process_payment.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Verifica se o pagamento foi aprovado ou autorizado antes de redirecionar
+                    if (result.payment.status === 'approved' || result.payment.status === 'authorized') {
+                        handlePaymentSuccess(result.payment);
+                    } else if (result.payment.status === 'pending') {
+                        // Para PIX e boleto que ficam pendentes
+                        handlePaymentSuccess(result.payment);
+                    } else if (result.payment.status === 'rejected') {
+                        handlePaymentError(`Pagamento rejeitado: ${result.payment.status_detail || 'Verifique os dados do cartão'}`);
+                    } else {
+                        handlePaymentError(`Status inesperado: ${result.payment.status} - ${result.payment.status_detail || ''}`);
+                    }
+                } else {
+                    handlePaymentError(result.error);
+                }
+
+            } catch (error) {
+                // Tratamento específico para erros de criptografia/token
+                if (error.message.includes('SDK') || error.message.includes('chave pública') || error.message.includes('Dados do cartão') || error.message.includes('token')) {
+                    alert('Erro na validação do cartão: ' + error.message);
+                } else {
+                    alert('Erro ao processar pagamento: ' + error.message);
+                }
+            } finally {
+                submitButton.textContent = 'Adicionar Saldo à Conta';
+                submitButton.disabled = false;
+            }
+        }
+
+        function handlePaymentSuccess(payment) {
+            // Verifica o método de pagamento baseado no payment_method_id ou fallback para paymentMethod
+            const paymentMethodId = payment.payment_method_id || payment.paymentMethod;
+            
+            switch (paymentMethodId) {
+                case 'pix':
+                    showPixPayment(payment);
+                    break;
+                    
+                case 'boleto':
+                case 'bolbradesco':
+                    showBoletoPayment(payment);
+                    break;
+                    
+                case 'credit_card':
+                case 'visa':
+                case 'mastercard':
+                case 'elo':
+                case 'amex':
+                case 'hipercard':
+                    // Para cartão, só redireciona se aprovado ou autorizado
+                    if (payment.status === 'approved' || payment.status === 'authorized') {
+                        showApprovedPayment(payment);
+                    } else {
+                        handlePaymentError(`Pagamento com cartão ${payment.status}: ${payment.status_detail || 'Verifique os dados do cartão'}`);
+                    }
+                    break;
+                    
+                default:
+                    // Fallback baseado no status
+                    if (payment.status === 'approved' || payment.status === 'authorized') {
+                        showApprovedPayment(payment);
+                    } else if (payment.status === 'pending') {
+                        // Verifica se é PIX ou boleto baseado nos dados
+                        if (payment.point_of_interaction) {
+                            showPixPayment(payment);
+                        } else if (payment.transaction_details || payment.barcode) {
+                            showBoletoPayment(payment);
+                        } else {
+                            showPendingPayment(payment);
+                        }
+                    } else {
+                        handlePaymentError(`Pagamento ${payment.status}: ${payment.status_detail || 'Entre em contato com o suporte'}`);
+                    }
+                    break;
+            }
+        }
+
+        function showPixPayment(payment) {
+            // Define página unificada para PIX
+            const gateway = document.querySelector('input[name="gateway"]:checked').value;
+            const page = 'thankyou_pix.php';
+            
+            // Redireciona para página específica do PIX com dados
+            const params = new URLSearchParams({
+                payment_id: payment.id,
+                amount: payment.transaction_amount,
+                qr_code: payment.point_of_interaction?.transaction_data?.qr_code || '',
+                qr_code_base64: payment.point_of_interaction?.transaction_data?.qr_code_base64 || '',
+                qr_code_url: payment.point_of_interaction?.transaction_data?.qr_code_url || '',
+                ticket_url: payment.point_of_interaction?.transaction_data?.ticket_url || '',
+                gateway: gateway
+            });
+            
+            const url = `${page}?${params.toString()}`;
+            
+            window.location.href = url;
+        }
+
+        function showBoletoPayment(payment) {
+            // Define página unificada para Boleto
+            const gateway = document.querySelector('input[name="gateway"]:checked').value;
+            const page = 'thankyou_boleto.php';
+            
+            // Pega o barcode da estrutura correta da resposta
+            let barcode = '';
+            
+            // Tenta várias estruturas possíveis do barcode
+            if (payment.barcode && typeof payment.barcode === 'object' && payment.barcode.content) {
+                // Resposta real da API do Mercado Pago - barcode como objeto na raiz
+                barcode = payment.barcode.content;
+            } else if (typeof payment.barcode === 'string' && payment.barcode.length > 10) {
+                // Barcode direto como string
+                barcode = payment.barcode;
+            } else if (payment.transaction_details?.barcode?.content) {
+                // Fallback - barcode dentro de transaction_details
+                barcode = payment.transaction_details.barcode.content;
+            }
+            
+            // Pega a linha digitável se disponível
+            let digitableLine = '';
+            if (payment.transaction_details?.digitable_line) {
+                digitableLine = payment.transaction_details.digitable_line;
+            }
+            
+            // Redireciona para página específica do Boleto com dados
+            const params = new URLSearchParams({
+                payment_id: payment.id,
+                amount: payment.transaction_amount,
+                boleto_url: payment.transaction_details?.external_resource_url || '',
+                due_date: payment.date_of_expiration || '',
+                barcode: barcode || '',
+                digitable_line: digitableLine || '',
+                gateway: gateway
+            });
+            
+            const url = `${page}?${params.toString()}`;
+            
+            window.location.href = url;
+        }
+
+        function showApprovedPayment(payment) {
+            // Verifica novamente o status antes de redirecionar
+            if (payment.status !== 'approved' && payment.status !== 'authorized') {
+                handlePaymentError(`Pagamento não aprovado. Status: ${payment.status} - ${payment.status_detail || 'Verifique os dados do cartão'}`);
+                return;
+            }
+            
+            // Define página baseada no gateway
+            const gateway = document.querySelector('input[name="gateway"]:checked').value;
+            const page = 'thankyou_cartao.php';
+            
+            // Redireciona para página de sucesso do cartão
+            const params = new URLSearchParams({
+                payment_id: payment.id,
+                amount: payment.transaction_amount,
+                installments: payment.installments || 1,
+                status: payment.status,
+                gateway: gateway
+            });
+            
+            const url = `${page}?${params.toString()}`;
+            
+            window.location.href = url;
+        }
+
+        function showPendingPayment(payment) {
+            alert(`Pagamento pendente. ID: ${payment.id}\nAcompanhe o status do seu pagamento.`);
+        }
+
+        function handlePaymentError(error) {
+            alert(`Erro no pagamento: ${error}`);
+        }
+
+        function copyPixCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Código PIX copiado!');
+            }).catch(err => {
+                console.error('Erro ao copiar:', err);
+            });
+        }
+
+        // Busca CEP (funcionalidade básica)
+        document.getElementById('zipCode').addEventListener('blur', function(e) {
+            const cep = e.target.value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.erro) {
+                            document.getElementById('street').value = data.logradouro;
+                            document.getElementById('neighborhood').value = data.bairro;
+                            document.getElementById('city').value = data.localidade;
+                            document.getElementById('state').value = data.uf;
+                        }
+                    })
+                    .catch(error => console.log('Erro ao buscar CEP:', error));
+            }
+        });
+
+        // Inicializa o gateway padrão
+        document.addEventListener('DOMContentLoaded', function() {
+            // Define Mercado Pago como gateway padrão
+            document.querySelector('.gateway-option').classList.add('active');
+        });
+    </script>
+
+    <!-- PagBank SDK para criptografia do cartão -->
+    <script src="https://assets.pagseguro.com.br/checkout-sdk-js/rc/dist/browser/pagseguro.min.js"></script>
+    
+    <!-- Mercado Pago SDK -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script src="https://www.mercadopago.com/v2/security.js" view="checkout"></script>
+    
+    <script>
+        // Carrega a chave pública do PagBank
+        async function loadPagBankPublicKey() {
+            try {
+                const response = await fetch('get_public_key.php');
+                const result = await response.json();
+                
+                if (result.success) {
+                    pagBankPublicKey = result.public_key;
+                    console.log('Chave pública PagBank carregada com sucesso');
+                    updatePagBankStatus('Pronto ✓', 'text-green-600');
+                    return true;
+                } else {
+                    console.error('Erro ao carregar chave pública:', result.error);
+                    updatePagBankStatus('Erro na chave', 'text-red-600');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Erro ao buscar chave pública:', error);
+                updatePagBankStatus('Erro conexão', 'text-red-600');
+                return false;
+            }
+        }
+        
+        // Atualiza status do PagBank na interface
+        function updatePagBankStatus(message, className) {
+            const statusElement = document.getElementById('pagbankStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.className = `text-xs mt-1 ${className}`;
+            }
+        }
+        
+        // Verifica se o SDK do PagSeguro está carregado
+        function waitForPagSeguroSDK() {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                const maxAttempts = 50;
+                
+                function checkSDK() {
+                    if (typeof PagSeguro !== 'undefined' && PagSeguro.encryptCard) {
+                        pagBankSDKLoaded = true;
+                        resolve(true);
+                    } else if (attempts < maxAttempts) {
+                        attempts++;
+                        setTimeout(checkSDK, 100);
+                    } else {
+                        reject(new Error('SDK do PagSeguro não carregou corretamente'));
+                    }
+                }
+                
+                checkSDK();
+            });
+        }
+        
+        // Criptografa os dados do cartão usando o SDK do PagBank
+        async function encryptCardData(cardData) {
+            if (!pagBankSDKLoaded) {
+                throw new Error('SDK do PagBank não está carregado');
+            }
+            
+            if (!pagBankPublicKey) {
+                throw new Error('Chave pública do PagBank não está disponível');
+            }
+            
+            try {
+                console.log('Criptografando cartão com dados:', {
+                    holder: cardData.holder,
+                    number: cardData.number.replace(/\d(?=\d{4})/g, '*'),
+                    expMonth: cardData.expMonth,
+                    expYear: cardData.expYear
+                });
+                
+                const encryptedCardResult = PagSeguro.encryptCard({
+                    publicKey: pagBankPublicKey,
+                    holder: cardData.holder,
+                    number: cardData.number,
+                    expMonth: cardData.expMonth,
+                    expYear: cardData.expYear,
+                    securityCode: cardData.securityCode
+                });
+                
+                if (encryptedCardResult.hasErrors) {
+                    console.error('Erros na criptografia do cartão:', encryptedCardResult.errors);
+                    
+                    // Traduz erros comuns para português
+                    let errorMessage = 'Erro nos dados do cartão:';
+                    encryptedCardResult.errors.forEach(error => {
+                        switch (error.code) {
+                            case 'INVALID_NUMBER':
+                                errorMessage += ' Número do cartão inválido.';
+                                break;
+                            case 'INVALID_SECURITY_CODE':
+                                errorMessage += ' CVV inválido (deve ter 3 ou 4 dígitos).';
+                                break;
+                            case 'INVALID_EXPIRATION_MONTH':
+                                errorMessage += ' Mês de expiração inválido (1-12).';
+                                break;
+                            case 'INVALID_EXPIRATION_YEAR':
+                                errorMessage += ' Ano de expiração inválido (4 dígitos).';
+                                break;
+                            case 'INVALID_HOLDER':
+                                errorMessage += ' Nome do portador inválido.';
+                                break;
+                            default:
+                                errorMessage += ` ${error.message || error.code}.`;
+                        }
+                    });
+                    
+                    throw new Error(errorMessage);
+                }
+                
+                console.log('Cartão criptografado com sucesso');
+                return encryptedCardResult.encryptedCard;
+                
+            } catch (error) {
+                console.error('Erro na criptografia do cartão:', error);
+                throw error;
+            }
+        }
+        
+        // Valida dados do cartão antes da criptografia
+        function validateCardData(cardData) {
+            const errors = [];
+            
+            // Validação do número do cartão
+            const cardNumber = cardData.number.replace(/\s/g, '');
+            if (!/^\d{13,19}$/.test(cardNumber)) {
+                errors.push('Número do cartão deve ter entre 13 e 19 dígitos');
+            }
+            
+            // Validação do CVV
+            if (!/^\d{3,4}$/.test(cardData.securityCode)) {
+                errors.push('CVV deve ter 3 ou 4 dígitos');
+            }
+            
+            // Validação do mês
+            const month = parseInt(cardData.expMonth);
+            if (month < 1 || month > 12) {
+                errors.push('Mês de expiração deve estar entre 1 e 12');
+            }
+            
+            // Validação do ano
+            const year = parseInt(cardData.expYear);
+            const currentYear = new Date().getFullYear();
+            if (year < currentYear || year > currentYear + 20) {
+                errors.push('Ano de expiração inválido');
+            }
+            
+            // Validação do nome
+            if (!cardData.holder || cardData.holder.trim().length < 2) {
+                errors.push('Nome do portador é obrigatório');
+            }
+            
+            return errors;
+        }
+        
+        // Inicializa o PagBank quando a página carrega
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Define Mercado Pago como gateway padrão
+            document.querySelector('.gateway-option').classList.add('active');
+            
+            // Inicializa Mercado Pago
+            const mpInitialized = await initializeMercadoPago();
+            if (!mpInitialized) {
+                console.warn('Falha ao inicializar Mercado Pago - algumas funcionalidades podem não estar disponíveis');
+            }
+            
+            // Carrega SDK e chave pública do PagBank
+            try {
+                updatePagBankStatus('SDK...', 'text-yellow-600');
+                await waitForPagSeguroSDK();
+                
+                updatePagBankStatus('Chave...', 'text-yellow-600');
+                const keyLoaded = await loadPagBankPublicKey();
+                
+                if (!keyLoaded) {
+                    updatePagBankStatus('Falha', 'text-red-600');
+                }
+                
+                console.log('PagBank inicializado:', { sdkLoaded: pagBankSDKLoaded, keyLoaded });
+            } catch (error) {
+                console.error('Erro ao inicializar PagBank:', error);
+                updatePagBankStatus('Erro SDK', 'text-red-600');
+                // Não bloqueia a interface, apenas logs o erro
+            }
+        });
+    </script>
+</html>
