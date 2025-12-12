@@ -7,18 +7,15 @@
     <link rel="stylesheet" href="/styles.css" />
     <script defer src="/auth.config.js"></script>
     <script defer src="/auth-status.js"></script>
-    <!-- Firebase compat para Firestore -->
     <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-    <!-- Módulo DB local -->
     <script defer src="/firebase-db.js"></script>
     <script src="/main.js" defer></script>
   </head>
   <body>
-    <!-- Cabeçalho do site com navegação -->
     <header class="site-header" role="banner">
       <div class="header-inner">
-        <a class="brand" href="/" aria-label="Ir para a página inicial">
+        <a class="brand" href="#home" aria-label="Ir para a página inicial">
           <img class="logo" src="/assets/logo-imantados.png" alt="Imantados" onerror="this.onerror=null; this.src='/assets/botao.png'" />
         </a>
         <div class="actions">
@@ -35,9 +32,7 @@
               </svg>
               <span>Empresa</span>
             </a>
-            <a class="cta-mural" href="/mural.html" aria-label="Mural Imantados">
-              Mural
-            </a>
+            <a class="cta-mural" href="/mural.html" aria-label="Mural Imantados">Mural</a>
             <a class="nav-link" href="/login.html">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                 <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -76,22 +71,18 @@
       </div>
     </header>
 
-    <!-- Banner Mural Imantados -->
     <section class="mural-banner" aria-label="Veja o Mural Imantados">
       <a href="/mural.html" class="mural-banner-link">
         <img src="/assets/eles_ja_estao.png" alt="Eles já estão — veja o Mural Imantados" class="mural-banner-img" onerror="this.onerror=null; this.src='/assets/botao.png'" />
       </a>
     </section>
 
-    <!-- Balão promocional topo direito -->
     <aside class="promo-bubble has-image" aria-label="Motivação para criar seus ímãs">
       <button class="promo-bubble-close" aria-label="Fechar">×</button>
       <img class="promo-bubble-img" src="/assets/balao.png" alt="Seu momento, sua frase, seu ímã! Personalize agora e veja sua geladeira ganhar vida." onerror="this.onerror=null; this.src='/assets/botao.png'" />
     </aside>
 
-    <!-- Ações rápidas na lateral esquerda -->
     <aside class="side-actions" aria-label="Ações rápidas">
-      <!-- Botão de enviar arquivos -->
       <button id="uploadBtn" class="upload-btn" type="button" aria-label="Enviar arquivos">
         <svg class="icon icon-upload" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -104,7 +95,6 @@
         </span>
       </button>
 
-      <!-- Categorias de modelos pré-definidos -->
       <nav class="quick-categories" aria-label="Modelos pré-definidos">
         <a class="category-btn" href="#" data-category="Emojis">Emojis</a>
         <a class="category-btn" href="#" data-category="Figurinhas">Figurinhas</a>
@@ -117,7 +107,6 @@
       </nav>
     </aside>
 
-    <!-- Modal de seleção de modelos -->
     <div id="categoryModal" class="modal-backdrop visually-hidden" aria-hidden="true">
       <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
         <header class="modal-header">
@@ -128,7 +117,6 @@
       </div>
     </div>
 
-    <!-- Botão de enviar para o carrinho -->
     <button id="previewBtn" class="preview-btn" type="button" aria-label="Enviar para o carrinho">
       <svg class="icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
         <path fill="currentColor" d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 .001 3.999A2 2 0 0 0 17 18zM6.2 6h13.03a1 1 0 0 1 .98 1.2l-1.4 7a1 1 0 0 1-.98.8H9.12l-.32 1.6h9.2a1 1 0 1 1 0 2H8a1 1 0 0 1-.98-1.2l.54-2.7L5.2 5H3a1 1 0 1 1 0-2h2.8a1 1 0 0 1 .93.64L7 6z"/>
@@ -136,62 +124,55 @@
       <span class="preview-label">Enviar para o carrinho</span>
     </button>
 
-    <!-- Input de arquivo oculto -->
     <input id="fileInput" class="visually-hidden" type="file" accept=".png,.jpg,.jpeg,.webp,image/*" multiple />
 
-    <!-- Área de mensagens/toast -->
     <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
 
-    <!-- Palco central onde as imagens escolhidas aparecem -->
     <main id="stage" class="stage">
       <div id="gallery" class="gallery"></div>
-  </main>
-  
-  <!-- Seção de figurinhas do WhatsApp removida conforme solicitado -->
-  </body>
-  <script src="/cart-count.js" defer></script>
-  <script>
-    // Ao carregar a página, se o balão já foi fechado antes, removê-lo
-    document.addEventListener('DOMContentLoaded', function () {
-      try {
-        if (localStorage.getItem('promoBubbleClosed') === '1') {
+    </main>
+
+    <script src="/cart-count.js" defer></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        try {
+          if (localStorage.getItem('promoBubbleClosed') === '1') {
+            const bubble = document.querySelector('.promo-bubble');
+            if (bubble) bubble.remove();
+          }
+        } catch {}
+      });
+      document.addEventListener('click', function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains('promo-bubble-close')) {
           const bubble = document.querySelector('.promo-bubble');
           if (bubble) bubble.remove();
+          try { localStorage.setItem('promoBubbleClosed', '1'); } catch {}
         }
-      } catch {}
-    });
-    // Fechar balão ao clicar no botão "×"
-    document.addEventListener('click', function (e) {
-      if (e.target && e.target.classList && e.target.classList.contains('promo-bubble-close')) {
-        const bubble = document.querySelector('.promo-bubble');
-        if (bubble) bubble.remove();
-        try { localStorage.setItem('promoBubbleClosed', '1'); } catch {}
+      });
+    </script>
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+      try {
+        const app = initializeApp(window.FIREBASE_CONFIG);
+        const allowedHosts = ['imantados.com.br', 'www.imantados.com.br'];
+        const isProdHost = allowedHosts.includes(location.hostname);
+        const hasMeasurement = !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.measurementId);
+        if (isProdHost && hasMeasurement) {
+          (async () => {
+            try {
+              const mod = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js');
+              const ok = await mod.isSupported();
+              if (ok) mod.getAnalytics(app);
+            } catch (e) {
+              console.info('Analytics não iniciado:', e?.message || e);
+            }
+          })();
+        } else {
+          console.info('Analytics desativado (host não permitido)');
+        }
+      } catch (e) {
+        console.warn('Firebase init (index) aviso:', e?.message || e);
       }
-    });
-  </script>
-  <script type="module">
-    // Inicializa Firebase (SDK modular via CDN) e carrega Analytics dinamicamente só em produção
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-    try {
-      const app = initializeApp(window.FIREBASE_CONFIG);
-      const allowedHosts = ['imantados.com.br', 'www.imantados.com.br'];
-      const isProdHost = allowedHosts.includes(location.hostname);
-      const hasMeasurement = !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.measurementId);
-      if (isProdHost && hasMeasurement) {
-        (async () => {
-          try {
-            const mod = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js');
-            const ok = await mod.isSupported();
-            if (ok) mod.getAnalytics(app);
-          } catch (e) {
-            console.info('Analytics não iniciado:', e?.message || e);
-          }
-        })();
-      } else {
-        console.info('Analytics desativado (host não permitido)');
-      }
-    } catch (e) {
-      console.warn('Firebase init (index) aviso:', e?.message || e);
-    }
-  </script>
-  </html>
+    </script>
+  </body>
+</html>

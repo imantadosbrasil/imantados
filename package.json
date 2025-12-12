@@ -10,6 +10,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "mercadopago": "^2.11.0",
-    "stripe": "^15.0.0"
+    "stripe": "^15.0.0",
+    "@vercel/blob": "^0.24.0"
   }
 }

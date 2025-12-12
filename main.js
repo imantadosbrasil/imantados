@@ -826,16 +826,45 @@ if (fileInput) {
     modalGrid.innerHTML = '';
     if (normalized === 'Emojis') {
       try {
+        const gh = await fetch('https://api.github.com/repos/imantadosbrasil/imantados/contents/assets/EMOJIS?ref=main', { headers: { 'Accept': 'application/vnd.github+json' }, cache: 'no-store' });
+        if (gh && gh.ok) {
+          const items = await gh.json();
+          if (Array.isArray(items)) {
+            const allowed = /\.(png|jpg|jpeg|webp|gif)$/i;
+            const files = items.filter(x => x && x.type === 'file' && allowed.test(x.name || '') && x.download_url);
+            if (files.length === 0) { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
+            const seen = new Set();
+            for (const f of files) {
+              const url = f.download_url;
+              const key = String(url || f.name).toLowerCase();
+              if (seen.has(key)) continue; seen.add(key);
+              const card = document.createElement('div');
+              card.className = 'option-card';
+              const img = document.createElement('img');
+              img.src = url;
+              img.alt = f.name || 'Emoji';
+              const body = document.createElement('div');
+              body.className = 'option-body';
+              const btn = document.createElement('button');
+              btn.className = 'option-select';
+              btn.type = 'button';
+              btn.textContent = 'Selecionar';
+              btn.addEventListener('click', async () => { await addImageFromUrl(url); try { closeModal(); } catch {} });
+              body.appendChild(btn);
+              card.appendChild(img);
+              card.appendChild(body);
+              modalGrid.appendChild(card);
+            }
+            return;
+          }
+        }
+      } catch {}
+      try {
         const res = await fetch('/api/emojis', { cache: 'no-store' });
         if (res && res.ok) {
           const files = await res.json();
           if (Array.isArray(files)) {
-            if (files.length === 0) {
-              const empty = document.createElement('div');
-              empty.textContent = 'Sem opções ainda. Em breve novidades!';
-              modalGrid.appendChild(empty);
-              return;
-            }
+            if (files.length === 0) { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
             const seen = new Set();
             for (const f of files) {
               const key = String(f.url || f.name).toLowerCase();
@@ -851,10 +880,7 @@ if (fileInput) {
               btn.className = 'option-select';
               btn.type = 'button';
               btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => {
-                await addImageFromUrl(f.url);
-                try { closeModal(); } catch {}
-              });
+              btn.addEventListener('click', async () => { await addImageFromUrl(f.url); try { closeModal(); } catch {} });
               body.appendChild(btn);
               card.appendChild(img);
               card.appendChild(body);
@@ -866,6 +892,40 @@ if (fileInput) {
       } catch { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
     }
     if (normalized === 'Signos') {
+      try {
+        const gh = await fetch('https://api.github.com/repos/imantadosbrasil/imantados/contents/assets/SIGNOS?ref=main', { headers: { 'Accept': 'application/vnd.github+json' }, cache: 'no-store' });
+        if (gh && gh.ok) {
+          const items = await gh.json();
+          if (Array.isArray(items)) {
+            const allowed = /\.(png|jpg|jpeg|webp|gif)$/i;
+            const files = items.filter(x => x && x.type === 'file' && allowed.test(x.name || '') && x.download_url);
+            if (files.length === 0) { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
+            const seen = new Set();
+            for (const f of files) {
+              const url = f.download_url;
+              const key = String(url || f.name).toLowerCase();
+              if (seen.has(key)) continue; seen.add(key);
+              const card = document.createElement('div');
+              card.className = 'option-card';
+              const img = document.createElement('img');
+              img.src = url;
+              img.alt = f.name || 'Signo';
+              const body = document.createElement('div');
+              body.className = 'option-body';
+              const btn = document.createElement('button');
+              btn.className = 'option-select';
+              btn.type = 'button';
+              btn.textContent = 'Selecionar';
+              btn.addEventListener('click', async () => { await addImageFromUrl(url); try { closeModal(); } catch {} });
+              body.appendChild(btn);
+              card.appendChild(img);
+              card.appendChild(body);
+              modalGrid.appendChild(card);
+            }
+            return;
+          }
+        }
+      } catch {}
       try {
         const res = await fetch('/api/signos', { cache: 'no-store' });
         if (res && res.ok) {
@@ -887,10 +947,7 @@ if (fileInput) {
               btn.className = 'option-select';
               btn.type = 'button';
               btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => {
-                await addImageFromUrl(f.url);
-                try { closeModal(); } catch {}
-              });
+              btn.addEventListener('click', async () => { await addImageFromUrl(f.url); try { closeModal(); } catch {} });
               body.appendChild(btn);
               card.appendChild(img);
               card.appendChild(body);
@@ -902,6 +959,40 @@ if (fileInput) {
       } catch { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
     }
     if (normalized === 'Frases') {
+      try {
+        const gh = await fetch('https://api.github.com/repos/imantadosbrasil/imantados/contents/assets/FRASES?ref=main', { headers: { 'Accept': 'application/vnd.github+json' }, cache: 'no-store' });
+        if (gh && gh.ok) {
+          const items = await gh.json();
+          if (Array.isArray(items)) {
+            const allowed = /\.(png|jpg|jpeg|webp|gif)$/i;
+            const files = items.filter(x => x && x.type === 'file' && allowed.test(x.name || '') && x.download_url);
+            if (files.length === 0) { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
+            const seen = new Set();
+            for (const f of files) {
+              const url = f.download_url;
+              const key = String(url || f.name).toLowerCase();
+              if (seen.has(key)) continue; seen.add(key);
+              const card = document.createElement('div');
+              card.className = 'option-card';
+              const img = document.createElement('img');
+              img.src = url;
+              img.alt = f.name || 'Frase';
+              const body = document.createElement('div');
+              body.className = 'option-body';
+              const btn = document.createElement('button');
+              btn.className = 'option-select';
+              btn.type = 'button';
+              btn.textContent = 'Selecionar';
+              btn.addEventListener('click', async () => { await addImageFromUrl(url); try { closeModal(); } catch {} });
+              body.appendChild(btn);
+              card.appendChild(img);
+              card.appendChild(body);
+              modalGrid.appendChild(card);
+            }
+            return;
+          }
+        }
+      } catch {}
       try {
         const res = await fetch('/api/frases', { cache: 'no-store' });
         if (res && res.ok) {
@@ -923,10 +1014,7 @@ if (fileInput) {
               btn.className = 'option-select';
               btn.type = 'button';
               btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => {
-                await addImageFromUrl(f.url);
-                try { closeModal(); } catch {}
-              });
+              btn.addEventListener('click', async () => { await addImageFromUrl(f.url); try { closeModal(); } catch {} });
               body.appendChild(btn);
               card.appendChild(img);
               card.appendChild(body);
@@ -1181,6 +1269,8 @@ if (fileInput) {
   categoriesNav.addEventListener('click', (e) => {
     const a = e.target.closest('.category-btn');
     if (!a) return;
+    const href = a.getAttribute('href') || '';
+    if (href.startsWith('http')) return;
     e.preventDefault();
     const category = a.getAttribute('data-category');
     if (!category) return;
@@ -1641,21 +1731,46 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="modal-card x-designer-card">
         <header class="modal-header"><h2 class="modal-title">Criar seu Íma no estilo do Instagram</h2><button class="modal-close" type="button">×</button></header>
         <div class="ig-designer">
-          <div class="x-preview">
-            <div id="igCard" class="x-card ig-card" style="width:65mm;height:90mm;background-image:url('/assets/modelo%20foto%20instagram.png');background-size:cover;background-position:center; position:relative;">
-              <div id="igPhoto" class="ig-photo" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38mm;height:38mm;border-radius:12px;overflow:hidden;background:#e5e7eb;"></div>
-              <div id="igHandle" class="ig-handle" style="position:absolute;left:50%;top:68mm;transform:translateX(-50%);background:rgba(255,255,255,.85);padding:4px 8px;border-radius:10px;font-size:14px;">@nome_usuario</div>
-              <div id="igMessage" class="ig-message" style="position:absolute;left:50%;top:74mm;transform:translateX(-50%);background:rgba(255,255,255,.85);padding:6px 10px;border-radius:10px;font-size:14px;max-width:58mm;text-align:center;">Cliente aqui...</div>
+          <div class="x-preview" style="display:grid;place-items:center;padding:12px;">
+            <div id="igCard" class="x-card ig-card" style="width:65mm;height:90mm;background-image:url('/assets/INSTAGRAM/modelo%20foto%20instagram.svg');background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;border-radius:10px;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,.12);overflow:hidden;">
+              <div class="ig-top" style="position:absolute;left:4mm;top:4mm;right:4mm;height:12mm;display:flex;align-items:center;gap:4mm;">
+                <div id="igBadge" class="ig-badge" style="width:12mm;height:12mm;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#9333ea,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:pointer;">Avatar</div>
+                <div style="display:flex;align-items:center;gap:2mm;flex:1;">
+                  <div id="igUser" style="font-weight:600">@Nome_usuário</div>
+                  <div title="verificado" style="width:4mm;height:4mm;border-radius:50%;background:#0ea5e9;display:flex;align-items:center;justify-content:center;">
+                    <svg viewBox="0 0 24 24" width="10" height="10" fill="#fff"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l8.1-8.1 1.4 1.4z"/></svg>
+                  </div>
+                </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:3mm;">
+                  <div class="pill" style="border:1px solid #999;border-radius:999px;padding:2px 6px;color:#111;font-size:11px;background:#f3f4f6">@imantados</div>
+                  <div class="menu" aria-label="mais">⋯</div>
+                </div>
+              </div>
+              <div id="igPhoto" class="ig-photo" style="position:absolute;left:44.5mm;top:10mm;width:56mm;height:70mm;border-radius:6mm;background:#f97316;display:grid;place-items:center;overflow:hidden;cursor:pointer;">
+                <div style="color:#2f2f2f;font-size:16px;text-align:center;line-height:1.3">foto<br>usuario</div>
+              </div>
+              <div id="igMessage" class="ig-message" style="position:absolute;left:4mm;right:20mm;bottom:18mm;color:#111;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Mensagem do Cliente aqui....</div>
+              <div class="ig-bottom" style="position:absolute;left:4mm;right:4mm;bottom:6mm;height:14mm;display:grid;grid-template-columns:1fr auto;gap:3mm;align-items:center;">
+                <div style="display:flex;align-items:center;gap:5mm;color:#4b5563;font-size:11px;">
+                  <div style="display:flex;align-items:center;gap:2mm"><span>♡</span><span>5.864</span></div>
+                  <div style="display:flex;align-items:center;gap:2mm"><span>💬</span><span>328</span></div>
+                  <div style="display:flex;align-items:center;gap:2mm"><span>🔁</span><span>30</span></div>
+                  <div style="display:flex;align-items:center;gap:2mm"><span>🎞️</span><span>1.624</span></div>
+                </div>
+                <div style="text-align:right;color:#9ca3af;font-size:11px">...mais</div>
+              </div>
             </div>
           </div>
           <form class="x-form" autocomplete="off">
-            <input id="inIgHandle" type="text" placeholder="@nome_usuario" value="@nome_usuario">
-            <textarea id="inIgMsg" rows="3" placeholder="Cliente aqui...">Cliente aqui...</textarea>
-            <div>
-              <label class="btn btn-light" for="inIgAvatar">Carregar foto do avatar</label>
-              <input id="inIgAvatar" type="file" accept="image/*" class="visually-hidden">
-            </div>
+            <input id="inUser" type="text" placeholder="@Nome_usuário" value="@Nome_usuário">
+            <textarea id="inCaption" rows="2" placeholder="Mensagem do Cliente aqui....">Mensagem do Cliente aqui....</textarea>
           </form>
+          <div class="upload-actions" style="display:flex;gap:8px;align-items:center;padding:12px 16px;">
+            <input id="inBadgeFile" type="file" accept="image/*" class="visualmente-hidden">
+            <input id="inPhotoFile" type="file" accept="image/*" class="visualmente-hidden">
+            <label class="btn btn-light" for="inBadgeFile">Carregar avatar do selo</label>
+            <label class="btn btn-light" for="inPhotoFile">Carregar foto/avatar (56mm x 70mm)</label>
+          </div>
         </div>
         <div class="x-actions">
           <button class="btn btn-light" type="button" id="igCancel">Cancelar</button>
@@ -1667,27 +1782,39 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.querySelector('.modal-close').addEventListener('click', close);
     overlay.querySelector('#igCancel').addEventListener('click', close);
     const bind = (sel, cb) => { const el = overlay.querySelector(sel); if (el) el.addEventListener('input', cb); };
-    const inHandleEl = overlay.querySelector('#inIgHandle'); if (inHandleEl) inHandleEl.setAttribute('maxlength','24');
-    const inMsgEl = overlay.querySelector('#inIgMsg'); if (inMsgEl) inMsgEl.setAttribute('maxlength','120');
-    bind('#inIgHandle', (e) => overlay.querySelector('#igHandle').textContent = (e.target.value || '@nome_usuario').slice(0,24));
-    bind('#inIgMsg', (e) => overlay.querySelector('#igMessage').textContent = (e.target.value || '').slice(0,120));
-    const inAvatar = overlay.querySelector('#inIgAvatar');
-    if (inAvatar) {
-      inAvatar.addEventListener('change', async () => {
-        const f = inAvatar.files && inAvatar.files[0];
+    const inUserEl = overlay.querySelector('#inUser'); if (inUserEl) inUserEl.setAttribute('maxlength','24');
+    const inCaptionEl = overlay.querySelector('#inCaption'); if (inCaptionEl) inCaptionEl.setAttribute('maxlength','64');
+    bind('#inUser', (e) => { const t=(e.target.value || '@Nome_usuário').slice(0,24); const h=overlay.querySelector('#igUser'); if (h) h.textContent=t; });
+    const limitCaption = (s) => { const max=64; return (s||'').length>max ? (s||'').slice(0,max-1)+'…' : (s||''); };
+    bind('#inCaption', (e) => { const m=overlay.querySelector('#igMessage'); if (m) m.textContent = limitCaption(e.target.value || ''); });
+    const inPhoto = overlay.querySelector('#inPhotoFile');
+    if (inPhoto) {
+      inPhoto.addEventListener('change', async () => {
+        const f = inPhoto.files && inPhoto.files[0];
         if (!f) return;
         const url = URL.createObjectURL(f);
         const ph = overlay.querySelector('#igPhoto');
         ph.innerHTML = `<img src="${url}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
       });
     }
+    const inBadge = overlay.querySelector('#inBadgeFile');
+    if (inBadge) {
+      inBadge.addEventListener('change', async () => {
+        const f = inBadge.files && inBadge.files[0];
+        if (!f) return;
+        const url = URL.createObjectURL(f);
+        const bd = overlay.querySelector('#igBadge');
+        bd.innerHTML = `<img src="${url}" alt="selo" style="width:100%;height:100%;object-fit:cover;">`;
+      });
+    }
+    const bdEl = overlay.querySelector('#igBadge'); bdEl && bdEl.addEventListener('click', () => { try { const i = overlay.querySelector('#inBadgeFile'); i && i.click(); } catch {} });
+    const phEl = overlay.querySelector('#igPhoto'); phEl && phEl.addEventListener('click', () => { try { const i = overlay.querySelector('#inPhotoFile'); i && i.click(); } catch {} });
     overlay.querySelector('#igAdd').addEventListener('click', async () => {
       try {
         await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
         const el = overlay.querySelector('#igCard');
         const canvas = await window.html2canvas(el, { backgroundColor: '#ffffff', scale: window.devicePixelRatio || 1 });
         const dataUrl = canvas.toDataURL('image/png');
-        window.__lastIGCardOptions__ = { allowedWidths: [15,13,11] };
         await addImageFromUrl(dataUrl);
         const catModal = document.getElementById('categoryModal');
         if (catModal) { catModal.classList.add('visually-hidden'); catModal.setAttribute('aria-hidden','true'); }
