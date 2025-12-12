@@ -1,5 +1,4 @@
 {
-
   "functions": {
     "api/**/*.js": {
       "memory": 1024,
@@ -20,20 +19,5 @@
         { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Meli-Session-Id" }
       ]
     }
-   ],
-  "builds": [
-    { "src": "index.html", "use": "@vercel/static" },
-    { "src": "*.html", "use": "@vercel/static" },
-    { "src": "assets/**", "use": "@vercel/static" },
-    { "src": "styles.css", "use": "@vercel/static" },
-    { "src": "styles/**", "use": "@vercel/static" },
-    { "src": "scripts/**", "use": "@vercel/static" },
-    { "src": "cart-count.js", "use": "@vercel/static" },
-    { "src": "carrinho.js", "use": "@vercel/static" },
-    { "src": "main.js", "use": "@vercel/static" },
-    { "src": "auth-status.js", "use": "@vercel/static" },
-    { "src": "auth.config.js", "use": "@vercel/static" },
-    { "src": "firebase-db.js", "use": "@vercel/static" },
-    { "src": "public/**", "use": "@vercel/static" }
   ]
 }
