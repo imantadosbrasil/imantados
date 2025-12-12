@@ -72,7 +72,79 @@
       window.location.href = '/pix-pagar.html';
       return;
     }
+    if (provider === 'mercado' && method === 'boleto') {
+      let endereco = null;
+      try { endereco = JSON.parse(localStorage.getItem('enderecoEntrega') || 'null'); } catch {}
+      const nameFallback = endereco?.nome || '';
+      const emailFallback = (endereco?.email || localStorage.getItem('custEmail') || '').toString();
+      const addrFallback = endereco?.rua || '';
+      const numberFallback = endereco?.semNumero ? 'S/N' : (endereco?.numero || '');
+      const compFallback = endereco?.complemento || '';
+      const bairroFallback = endereco?.bairro || '';
+      const cityFallback = endereco?.cidade || '';
+      const stateFallback = (endereco?.estado || '').toString();
+      const cepFallback = (endereco?.cep || '').toString();
+      const fullAddress = [
+        `${addrFallback}${numberFallback ? ', ' + numberFallback : ''}${compFallback ? ' - ' + compFallback : ''}`,
+        `${bairroFallback}`,
+        `${cityFallback}/${(stateFallback || '').toUpperCase()}`
+      ].filter(Boolean).join(', ');
+      const order = {
+        id: 'IM' + Date.now().toString(36).toUpperCase(),
+        items: cart,
+        subtotal,
+        shipping: shipping || { price: 0, cep: cepFallback ? cepFallback.replace(/\D/g,'') : null },
+        total: subtotal + frete,
+        customer: {
+          name: nameFallback, email: emailFallback, phone: endereco?.telefone || '',
+          country: 'BR', cep: cepFallback,
+          address: addrFallback, number: numberFallback, complement: compFallback,
+          bairro: bairroFallback, city: cityFallback, state: stateFallback,
+          fullAddress,
+          default: true
+        },
+        payment: { provider: 'mercado', method: 'boleto' },
+        createdAt: new Date().toISOString(),
+      };
+      try { localStorage.setItem('lastOrder', JSON.stringify(order)); } catch {}
+      window.location.href = '/boleto-pagar.html';
+      return;
+    }
     if (provider === 'mercado' && method === 'cartao') {
+      let endereco = null;
+      try { endereco = JSON.parse(localStorage.getItem('enderecoEntrega') || 'null'); } catch {}
+      const nameFallback = endereco?.nome || '';
+      const emailFallback = (endereco?.email || localStorage.getItem('custEmail') || '').toString();
+      const addrFallback = endereco?.rua || '';
+      const numberFallback = endereco?.semNumero ? 'S/N' : (endereco?.numero || '');
+      const compFallback = endereco?.complemento || '';
+      const bairroFallback = endereco?.bairro || '';
+      const cityFallback = endereco?.cidade || '';
+      const stateFallback = (endereco?.estado || '').toString();
+      const cepFallback = (endereco?.cep || '').toString();
+      const fullAddress = [
+        `${addrFallback}${numberFallback ? ', ' + numberFallback : ''}${compFallback ? ' - ' + compFallback : ''}`,
+        `${bairroFallback}`,
+        `${cityFallback}/${(stateFallback || '').toUpperCase()}`
+      ].filter(Boolean).join(', ');
+      const order = {
+        id: 'IM' + Date.now().toString(36).toUpperCase(),
+        items: cart,
+        subtotal,
+        shipping: shipping || { price: 0, cep: cepFallback ? cepFallback.replace(/\D/g,'') : null },
+        total: subtotal + frete,
+        customer: {
+          name: nameFallback, email: emailFallback, phone: endereco?.telefone || '',
+          country: 'BR', cep: cepFallback,
+          address: addrFallback, number: numberFallback, complement: compFallback,
+          bairro: bairroFallback, city: cityFallback, state: stateFallback,
+          fullAddress,
+          default: true
+        },
+        payment: { provider: 'mercado', method: 'cartao' },
+        createdAt: new Date().toISOString(),
+      };
+      try { localStorage.setItem('lastOrder', JSON.stringify(order)); } catch {}
       window.location.href = '/cartao-novo.html';
       return;
     }

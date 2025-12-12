@@ -23,12 +23,15 @@
       .actions{display:flex;justify-content:flex-end;margin-top:12px}
       .btn{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 16px;border-radius:6px;border:1px solid transparent;cursor:pointer;font-weight:600}
       .btn-primary{background:#2563eb;color:#fff}
+      .btn:disabled{background:#d1d5db;color:#9ca3af;cursor:not-allowed;opacity:0.6}
       .summary{background:#fff;border:1px solid #e5e7eb;border-radius:8px}
       .summary-header{padding:12px;border-bottom:1px solid #e5e7eb;font-weight:600}
       .summary-row{display:flex;justify-content:space-between;padding:10px 12px;font-size:14px;border-bottom:1px solid #e5e7eb}
       .summary-row:last-child{border-bottom:none}
       .summary-total{font-weight:700}
     </style>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script src="https://www.mercadopago.com/v2/security.js" view="checkout"></script>
   </head>
   <body>
     <main class="container">
@@ -40,11 +43,15 @@
               <span class="brand-badge">💳</span>
               <div id="card-summary" style="font-weight:600;color:#374151">—</div>
             </div>
-            <div id="installments-box" class="installments"></div>
-            <div class="actions">
-              <button id="btn-pay" class="btn btn-primary">Confirmar e pagar</button>
+            <div id="installments-box" class="installments">
+              <div class="opt">
+                <span style="color:#6b7280">Carregando parcelas disponíveis...</span>
+              </div>
             </div>
-            <p id="parcelas-msg" style="margin-top:8px;color:#374151"></p>
+            <div class="actions">
+              <button id="btn-pay" class="btn btn-primary" disabled>Confirmar e pagar</button>
+            </div>
+            <p id="parcelas-msg" style="margin-top:8px;color:#6b7280;font-size:14px">Aguarde enquanto carregamos as opções de pagamento...</p>
           </div>
         </section>
         <aside class="summary">
@@ -55,8 +62,7 @@
         </aside>
       </div>
     </main>
-    <script>window.MP_PUBLIC_KEY = "APP_USR-83c0985a-dd1d-4ca6-b22b-968b34988f03";</script>
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script>window.MP_PUBLIC_KEY = "TEST-11fc4172-e51f-4f27-b7d9-be18834cee19";</script>
     <script src="scripts/parcelas.js"></script>
   </body>
   </html>

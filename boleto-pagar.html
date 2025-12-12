@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pague via Boleto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,sans-serif;background:#f3f4f6;color:#111827;margin:0}
+      .container{max-width:860px;margin:24px auto;padding:0 12px}
+      .hero{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px}
+      .hero .title{font-weight:700}
+      .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-top:12px}
+      .card-header{padding:12px;border-bottom:1px solid #e5e7eb;font-weight:600}
+      .card-body{padding:16px}
+      .barcode{width:100%;max-width:400px;height:80px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa;display:flex;align-items:center;justify-content:center;color:#6b7280}
+      .code-box{display:flex;gap:8px;align-items:center;margin-top:12px}
+      .code-input{flex:1;height:38px;padding:0 8px;border:1px solid #e5e7eb;border-radius:8px;font-family:monospace;font-size:13px}
+      .btn{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;cursor:pointer;font-weight:600;text-decoration:none}
+      .btn-primary{background:#2563eb;color:#fff}
+      .btn-secondary{background:#fff;color:#2563eb;border:1px solid #2563eb}
+      .note{font-size:12px;color:#6b7280}
+      .info-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-top:12px}
+      .info-row{display:flex;justify-content:space-between;margin-bottom:8px}
+      .info-row:last-child{margin-bottom:0}
+      .info-label{color:#6b7280;font-size:13px}
+      .info-value{font-weight:600;font-size:14px}
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <div class="hero">
+        <div style="width:36px;height:36px;border-radius:18px;background:#fef3c7;display:flex;align-items:center;justify-content:center">
+          <span style="font-size:20px">🧾</span>
+        </div>
+        <div>
+          <div class="title" id="hero-title">Pague via Boleto para concluir sua compra</div>
+          <div class="note" id="hero-sub">Aprovação em 1 a 2 dias úteis</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Informações do boleto</div>
+        <div class="card-body">
+          <div class="info-box">
+            <div class="info-row">
+              <span class="info-label">Valor</span>
+              <span class="info-value" id="boleto-valor">R$ 0,00</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Vencimento</span>
+              <span class="info-value" id="boleto-vencimento">—</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Status</span>
+              <span class="info-value" id="boleto-status">Aguardando pagamento</span>
+            </div>
+          </div>
+          <ol class="note" style="margin:12px 0 12px 16px">
+            <li>Faça o download do boleto ou copie o código de barras.</li>
+            <li>Pague em qualquer banco, lotérica ou app de pagamentos.</li>
+            <li>O pagamento será confirmado em 1 a 2 dias úteis.</li>
+          </ol>
+          <div id="boleto-barcode" class="barcode">Código de barras</div>
+          <div id="boleto-msg" class="note" style="margin-top:8px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Linha digitável</div>
+        <div class="card-body">
+          <div class="code-box">
+            <input id="boleto-code" class="code-input" type="text" readonly />
+            <button id="btn-copy" class="btn">Copiar</button>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <a id="btn-download" href="#" target="_blank" class="btn btn-primary" style="display:none">Download do Boleto (PDF)</a>
+            <a href="confirmacao.html" class="btn btn-secondary">Ir para Minhas compras</a>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script src="scripts/boleto-pagar.js"></script>
+  </body>
+</html>
+

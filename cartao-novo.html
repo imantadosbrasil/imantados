@@ -57,6 +57,11 @@
                   <input id="card-holder" class="input" type="text" autocomplete="cc-name" placeholder="Conforme no cartão" />
                   <div id="err-holder" class="error" style="display:none">Informe o nome do titular.</div>
                 </div>
+                <div class="field">
+                  <label for="card-email">Email</label>
+                  <input id="card-email" class="input" type="email" autocomplete="email" placeholder="seu@email.com" />
+                  <div id="err-email" class="error" style="display:none">Informe um email válido.</div>
+                </div>
                 <div class="row">
                   <div class="field">
                     <label for="card-expiry">Vencimento</label>
@@ -65,7 +70,7 @@
                   </div>
                   <div class="field">
                     <label for="card-cvv">Código de segurança</label>
-                    <input id="card-cvv" class="input" type="password" inputmode="numeric" autocomplete="cc-csc" placeholder="CVV" />
+                    <input id="card-cvv" class="input" inputmode="numeric" autocomplete="cc-csc" placeholder="CVV" />
                     <div id="err-cvv" class="error" style="display:none">Preencha este campo.</div>
                   </div>
                 </div>
@@ -109,6 +114,8 @@
         </aside>
       </div>
     </main>
-    <script src="scripts/pagamento.js"></script>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script src="https://www.mercadopago.com/v2/security.js" view="checkout"></script>
+    <script src="scripts/cartao-novo.js"></script>
   </body>
 </html>

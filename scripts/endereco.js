@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const telefoneInput = document.getElementById('telefone');
     const infoAdicionalTextarea = document.getElementById('infoAdicional');
     const charCountSpan = document.getElementById('charCount');
+    const nomeInput = document.getElementById('nome');
+    const nomeError = document.getElementById('nome-error');
 
     cepInput.addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
@@ -57,6 +59,29 @@ document.addEventListener('DOMContentLoaded', function() {
             charCountSpan.style.color = '#f23d4f';
         } else {
             charCountSpan.style.color = '#666';
+        }
+    });
+
+    nomeInput.addEventListener('input', function(e) {
+        const nome = e.target.value.trim();
+        const palavras = nome.split(/\s+/).filter(Boolean);
+        
+        if (nome && palavras.length < 2) {
+            nomeError.style.display = 'block';
+            nomeInput.classList.add('input-error');
+        } else {
+            nomeError.style.display = 'none';
+            nomeInput.classList.remove('input-error');
+        }
+    });
+
+    nomeInput.addEventListener('blur', function(e) {
+        const nome = e.target.value.trim();
+        const palavras = nome.split(/\s+/).filter(Boolean);
+        
+        if (nome && palavras.length < 2) {
+            nomeError.style.display = 'block';
+            nomeInput.classList.add('input-error');
         }
     });
 
@@ -116,6 +141,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (telefone.length < 10) {
             telefoneInput.classList.add('input-error');
             isValid = false;
+        }
+
+        // Validar nome e sobrenome (mínimo 2 palavras)
+        const nome = nomeInput.value.trim();
+        const palavras = nome.split(/\s+/).filter(Boolean);
+        if (palavras.length < 2) {
+            nomeInput.classList.add('input-error');
+            nomeError.style.display = 'block';
+            isValid = false;
+        } else {
+            nomeError.style.display = 'none';
         }
 
         if (!isValid) {
