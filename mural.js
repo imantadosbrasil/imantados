@@ -27,7 +27,7 @@
   }
 
   // Rating UI state
-  let currentRating = 0;
+  let currentRating = 5;
   if (ratingBar) {
     ratingBar.addEventListener('click', (e) => {
       const btn = e.target.closest('.star');
@@ -39,6 +39,12 @@
         if (i <= currentRating) c.classList.add('selected');
         else c.classList.remove('selected');
       });
+    });
+    const children = Array.from(ratingBar.querySelectorAll('.star'));
+    children.forEach((c, i) => {
+      c.textContent = i <= currentRating ? '★' : '☆';
+      if (i <= currentRating) c.classList.add('selected');
+      else c.classList.remove('selected');
     });
   }
 
@@ -196,9 +202,13 @@
         // Reset form
         if (form) form.reset();
         if (fileNameEl) fileNameEl.textContent = 'Nenhum arquivo';
-        currentRating = 0;
+        currentRating = 5;
         const children = Array.from(ratingBar.querySelectorAll('.star'));
-        children.forEach((c) => { c.textContent = '☆'; c.classList.remove('selected'); });
+        children.forEach((c, i) => {
+          c.textContent = i <= currentRating ? '★' : '☆';
+          if (i <= currentRating) c.classList.add('selected');
+          else c.classList.remove('selected');
+        });
         await refresh();
       } catch (err) {
         showToast('Falha ao publicar. Tente novamente.');

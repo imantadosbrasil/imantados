@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Login – Imantados 2.0</title>
     <link rel="stylesheet" href="styles.css" />
-    <!-- Firebase Auth (compat) e configuração local -->
-    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-    <!-- Copie auth.config.example.js para auth.config.js e preencha FIREBASE_CONFIG -->
+    <!-- Google Identity Services (sem Firebase) -->
+    <script defer src="https://accounts.google.com/gsi/client"></script>
+    <!-- Configuração local de OAuth: defina GOOGLE_CLIENT_ID em auth.config.js -->
     <script defer src="auth.config.js"></script>
-    <script defer src="firebase-auth.js"></script>
     <script src="cart-count.js" defer></script>
     <script src="login.js" defer></script>
   </head>

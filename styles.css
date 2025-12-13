@@ -137,7 +137,7 @@ body {
   border: 1px solid #e5e7eb;
 }
 /* Designer X */
-.x-designer-card { width: min(980px, 94vw); max-height: 86vh; overflow-y: auto; overflow-x: hidden; }
+.x-designer-card { width: min(980px, 94vw); max-height: 86vh; overflow-y: auto; overflow-x: auto; }
 .x-designer { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 16px; }
 @media (min-width: 769px) { .x-designer { grid-template-columns: 1.2fr 0.8fr; } }
 .x-preview { display: grid; place-items: center; }

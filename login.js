@@ -1,6 +1,6 @@
 (() => {
   const qs = (sel) => document.querySelector(sel);
-  let authFlowInProgress = false;
+  const loadScript = (src) => new Promise((resolve, reject) => { const s = document.createElement('script'); s.src = src; s.defer = true; s.onload = resolve; s.onerror = () => reject(new Error('Falha ao carregar ' + src)); document.head.appendChild(s); });
 
   // Traduz códigos comuns de erro do Firebase Auth em mensagens mais úteis
   const friendlyAuthError = (e, providerName) => {
@@ -80,14 +80,37 @@
     alert(`${currentProviderName}: essa conta já existe com outro provedor. Entre com ${suggestedName} usando o botão correspondente e, depois, vincularemos ${currentProviderName} automaticamente.`);
   }
 
-  // Firebase Auth – provedores
-  const requireAuthConfig = () => {
-    if (!window.Auth || !window.Auth.isReady()) {
-      alert('Firebase não configurado. Copie auth.config.example.js para auth.config.js e preencha FIREBASE_CONFIG.');
-      return false;
+  // Google Identity – sem Firebase
+  async function signInWithGoogle() {
+    try {
+      if (!window.GOOGLE_CLIENT_ID) { alert('Google não configurado. Defina GOOGLE_CLIENT_ID em auth.config.js'); return; }
+      if (!window.google || !window.google.accounts) {
+        await loadScript('https://accounts.google.com/gsi/client');
+      }
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: window.GOOGLE_CLIENT_ID,
+        scope: 'openid email profile',
+        prompt: '',
+        callback: async (tokenResponse) => {
+          try {
+            const at = tokenResponse && tokenResponse.access_token;
+            if (!at) throw new Error('Sem access_token');
+            const r = await fetch('https://openidconnect.googleapis.com/v1/userinfo', { headers: { Authorization: 'Bearer ' + at } });
+            const u = await r.json();
+            const user = { uid: u.sub, email: u.email, name: u.name, photo: u.picture };
+            try { sessionStorage.setItem('authUser', JSON.stringify(user)); localStorage.setItem('authUser', JSON.stringify(user)); } catch {}
+            try { sessionStorage.setItem('authToken', at); localStorage.setItem('authToken', at); } catch {}
+            window.location.href = 'index.html';
+          } catch (e) {
+            alert('Google: ' + (e && e.message ? e.message : 'Falha ao obter perfil'));
+          }
+        },
+      });
+      tokenClient.requestAccessToken();
+    } catch (e) {
+      alert('Google: ' + (e && e.message ? e.message : 'Erro inesperado'));
     }
-    return true;
-  };
+  }
 
   const afterLogin = async (user, overrides = {}) => {
     if (!user) return;
@@ -155,110 +178,14 @@
     window.location.href = 'index.html';
   };
 
-  qs('.auth-google')?.addEventListener('click', async () => {
-    if (!requireAuthConfig()) return;
-    if (authFlowInProgress) return;
-    authFlowInProgress = true;
-    try {
-      // Tenta popup primeiro em todos os navegadores
-      const res = await window.Auth.signInWithGoogle();
-      await afterLogin(res.user);
-    }
-    catch (e) {
-      if ((e && e.code) === 'auth/account-exists-with-different-credential') {
-        await handleAccountExists(e, 'Google');
-      } else if ((e && e.code) === 'auth/popup-blocked') {
-        // Fallback para redirect somente quando o ambiente suporta sessionStorage
-        try {
-          if (!canUseSessionStorage) {
-            alert('Google: não foi possível iniciar o login no ambiente atual (armazenamento do navegador bloqueado). Abra em um navegador padrão (ex.: Safari/Chrome fora de apps) e tente novamente.');
-          } else {
-            // Usa redirect quando popup foi bloqueado e storage está disponível
-            await window.Auth.signInWithGoogleRedirect();
-            // Mantém inProgress até o processamento do redirect em getRedirectResult()
-            return;
-          }
-        } catch (e2) {
-          alert(friendlyAuthError(e2, 'Erro no Google'));
-        }
-      } else {
-        alert(friendlyAuthError(e, 'Erro no Google'));
-      }
-    }
-    finally { authFlowInProgress = false; }
+  qs('.auth-google')?.addEventListener('click', signInWithGoogle);
+
+  ['.auth-apple','.auth-microsoft','.auth-phone'].forEach((sel) => {
+    const btn = qs(sel);
+    if (btn) btn.addEventListener('click', () => alert('Este provedor será habilitado em breve. Use Google por enquanto.'));
   });
 
-  qs('.auth-apple')?.addEventListener('click', async () => {
-    if (!requireAuthConfig()) return;
-    if (authFlowInProgress) return;
-    authFlowInProgress = true;
-    let usedRedirect = false;
-    try {
-      if (isIOS) {
-        // iOS não suporta popup – usa redirect
-        usedRedirect = true;
-        await window.Auth.signInWithAppleRedirect();
-      } else {
-        // Tenta popup em navegadores desktop
-        const res = await window.Auth.signInWithApple();
-        await afterLogin(res.user);
-      }
-    } catch (e) {
-      const code = e && e.code;
-      if (code === 'auth/account-exists-with-different-credential') {
-        await handleAccountExists(e, 'Apple');
-      } else if (!isIOS && code === 'auth/popup-blocked') {
-        // Fallback para redirect somente em caso de bloqueio de popup
-        try {
-          usedRedirect = true;
-          await window.Auth.signInWithAppleRedirect();
-        } catch (e2) {
-          alert(friendlyAuthError(e2, 'Erro no Apple'));
-          usedRedirect = false;
-        }
-      } else if (code === 'auth/popup-closed-by-user') {
-        alert('Apple: popup fechado pelo usuário. Tente novamente.');
-      } else {
-        alert(friendlyAuthError(e, 'Erro no Apple'));
-      }
-    } finally {
-      // Mantém inProgress até processar o resultado do redirect
-      if (!usedRedirect) authFlowInProgress = false;
-    }
-  });
-
-  // Processa resultado de redirect (Apple/Google)
-  try {
-    if (window.Auth && window.Auth.isReady()) {
-      const wasPending = (window.Auth.getPending && window.Auth.getPending()) || null;
-      window.Auth.getRedirectResult().then((res) => {
-        authFlowInProgress = false;
-        if (res && res.user) {
-          const info = (res && res.additionalUserInfo && res.additionalUserInfo.profile) || {};
-          const overrides = { name: info.name || null, email: info.email || null };
-          afterLogin(res.user, overrides);
-        } else if (wasPending === 'apple') {
-          alert('Apple: login cancelado ou não concluído. Tente novamente.');
-        } else if (wasPending === 'google') {
-          alert('Google: login cancelado ou não concluído. Tente novamente.');
-        }
-      }).then((res) => {
-        // já tratado acima
-        return res;
-      }).catch((e) => {
-        const code = e && e.code;
-        if (code === 'auth/account-exists-with-different-credential') {
-          // Pode ocorrer para Apple ou Google
-          handleAccountExists(e, wasPending === 'google' ? 'Google' : 'Apple');
-        } else if (['auth/operation-not-allowed', 'auth/unauthorized-domain'].includes(code)) {
-          alert(friendlyAuthError(e, wasPending === 'google' ? 'Erro no Google' : 'Erro no Apple'));
-        } else {
-          console.warn('Redirect Apple result error:', code, e && e.message);
-        }
-        authFlowInProgress = false;
-      });
-    }
-  } catch {}
+  // Email/telefone – permanecem como placeholders
 
   qs('.auth-microsoft')?.addEventListener('click', async () => {
     if (!requireAuthConfig()) return;

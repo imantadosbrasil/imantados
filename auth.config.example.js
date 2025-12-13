@@ -1,12 +1,8 @@
-// Copie este arquivo para `auth.config.js` e preencha com suas chaves do Firebase.
-// Exemplo de configuração (Projeto Firebase -> Configurações do app Web):
+// Copie este arquivo para `auth.config.js`.
+// Defina seu Client ID do Google OAuth para login sem Firebase.
 // Não comite chaves reais em repositórios públicos.
 
-window.FIREBASE_CONFIG = {
-  apiKey: "SEU_API_KEY",
-  authDomain: "seu-projeto.firebaseapp.com",
-  projectId: "seu-projeto",
-  storageBucket: "seu-projeto.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:abcdef123456",
-};
+window.GOOGLE_CLIENT_ID = "SEU_CLIENT_ID_GOOGLE.apps.googleusercontent.com";
+
+// Firebase não é mais utilizado; mantenha vazio.
+window.FIREBASE_CONFIG = {};

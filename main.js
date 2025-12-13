@@ -7,6 +7,14 @@
 
   let lastObjectUrl = null;
 
+  try {
+    const pend = JSON.parse(localStorage.getItem('__pendingStageImages__') || '[]');
+    if (Array.isArray(pend) && pend.length && gallery) {
+      pend.forEach((u) => { try { addImageFromUrl(u); } catch {} });
+      localStorage.removeItem('__pendingStageImages__');
+    }
+  } catch {}
+
   // Conversão pixel-milímetro (ajustada para 2.2 px/mm)
   const PX_PER_MM = 2.2;
   // Conversão para centímetros
@@ -42,6 +50,61 @@
       s.onerror = () => reject(new Error('Falha ao carregar dependência'));
       document.head.appendChild(s);
     });
+  }
+  async function openIGPreview(dataUrl, state) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-backdrop';
+    overlay.innerHTML = `
+      <div class="modal-card x-designer-card">
+        <header class="modal-header"><h2 class="modal-title">Preview Instagram</h2><button class="modal-close" type="button">×</button></header>
+        <div style="display:grid;gap:12px;padding:16px;justify-items:center;">
+          <img src="${dataUrl}" alt="Preview" style="max-width:92vw;max-height:60vh;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.25);" />
+          <div class="x-actions" style="justify-content:flex-start">
+            <button class="btn btn-light" type="button" id="igBack">Voltar à edição</button>
+            <button class="btn btn-primary" type="button" id="igAddStage">Adicionar ao palco</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    overlay.querySelector('.modal-close').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); close(); });
+    const btnBack = overlay.querySelector('#igBack');
+    btnBack.addEventListener('click', async (e) => { e.preventDefault(); e.stopPropagation(); close(); await openInstagramDesigner(state || {}); });
+    const btnAdd = overlay.querySelector('#igAddStage');
+    btnAdd.addEventListener('click', async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try {
+        await window.addImageFromUrl(dataUrl);
+        const catModal = document.getElementById('categoryModal');
+        if (catModal) { catModal.classList.add('visually-hidden'); catModal.setAttribute('aria-hidden','true'); }
+        close();
+      } catch { close(); }
+    });
+  }
+  try { window.openIGPreview = openIGPreview; } catch {}
+
+  async function captureElToDataUrl(el, fmt = 'png') {
+    const pxr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    try {
+      await loadScriptOnce('https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js');
+      const dataUrl = fmt === 'jpeg'
+        ? await window.htmlToImage.toJpeg(el, { quality: 0.92, pixelRatio: pxr, backgroundColor: '#ffffff', cacheBust: true })
+        : await window.htmlToImage.toPng(el, { pixelRatio: pxr, backgroundColor: null, cacheBust: true });
+      if (dataUrl) return dataUrl;
+    } catch {}
+    try {
+      await loadScriptOnce('https://unpkg.com/dom-to-image-more@3.3.0/dist/dom-to-image-more.min.js');
+      const dataUrl = fmt === 'jpeg'
+        ? await window.domtoimage.toJpeg(el, { quality: 0.92, bgcolor: '#ffffff' })
+        : await window.domtoimage.toPng(el);
+      if (dataUrl) return dataUrl;
+    } catch {}
+    try {
+      await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+      const canvas = await window.html2canvas(el, { backgroundColor: fmt === 'jpeg' ? '#ffffff' : null, scale: 1, useCORS: true, allowTaint: true, foreignObjectRendering: true });
+      return fmt === 'jpeg' ? canvas.toDataURL('image/jpeg', 0.92) : canvas.toDataURL('image/png');
+    } catch {}
+    return '';
   }
 
   // Efeito ripple no clique
@@ -463,6 +526,8 @@
     const step = 18;
     wrap.style.setProperty('--drag-x', `${index * step}px`);
     wrap.style.setProperty('--drag-y', `${index * step}px`);
+    wrap.style.setProperty('--img-offset-x', '0px');
+    wrap.style.setProperty('--img-offset-y', '0px');
     wrap.style.setProperty('--scale', '1');
     // Espessura fixa do contorno em px (0.75mm)
     wrap.style.setProperty('--outline-px', `${0.75 * PX_PER_MM}px`);
@@ -537,8 +602,8 @@
       const baseH = parseFloat(wrap.dataset.baseHeightCm || '0');
       let widthCm = baseW > 0 ? (baseW * curScale) : pxToCm(img.getBoundingClientRect().width);
       let heightCm = baseH > 0 ? (baseH * curScale) : pxToCm(img.getBoundingClientRect().height);
-      if ((wrap.dataset.type === 'x' || wrap.dataset.type === 'ig') && baseW > 0 && baseH > 0) {
-        const targetW = Number(wrap.dataset.xTargetWidthCm || 15);
+      if (wrap.dataset.xTargetWidthCm && baseW > 0 && baseH > 0) {
+        const targetW = Number(wrap.dataset.xTargetWidthCm);
         widthCm = targetW;
         heightCm = Number((targetW * (baseH / baseW)).toFixed(0));
       }
@@ -553,18 +618,15 @@
     // Definir altura inicial em 8 cm e atualizar indicadores quando a imagem carregar
     img.addEventListener('load', () => {
       try {
-        const desiredHeightCm = 6;
         const rect = img.getBoundingClientRect();
         const baseWidthCm = Math.max(0.0001, pxToCm(rect.width));
         const baseHeightCm = Math.max(0.0001, pxToCm(rect.height));
         wrap.dataset.baseWidthCm = String(baseWidthCm);
         wrap.dataset.baseHeightCm = String(baseHeightCm);
-        const currentHeightCm = baseHeightCm;
-        // Garantir que o alvo esteja dentro dos limites 3–15 cm
-        const targetCm = Math.max(MIN_SIZE_CM, Math.min(MAX_SIZE_CM, desiredHeightCm));
-        const curScale = parseFloat(getComputedStyle(wrap).getPropertyValue('--scale')) || 1;
-        const factor = targetCm / currentHeightCm;
-        wrap.style.setProperty('--scale', String(curScale * factor));
+        const targetW = 12; // largura confortável padrão em cm
+        const { minScale, maxScale } = getScaleLimits(rect.width, rect.height);
+        const scale = Math.min(maxScale, Math.max(minScale, targetW / baseWidthCm));
+        wrap.style.setProperty('--scale', String(scale));
       } catch {}
       updateSizeIndicator();
     });
@@ -584,28 +646,32 @@
   // Adicionar imagem por URL (mesmo fluxo do upload)
   async function addImageFromUrl(imageUrl) {
     try {
-      if (!gallery || !imageUrl) return;
-      const existing = gallery.querySelectorAll('.image-wrap').length;
+      let targetGallery = document.getElementById('gallery') || gallery;
+      if (!targetGallery) {
+        try {
+          const st = document.getElementById('stage');
+          const newGal = document.createElement('div');
+          newGal.id = 'gallery';
+          newGal.className = 'gallery';
+          (st || document.body).appendChild(newGal);
+          targetGallery = newGal;
+        } catch {}
+      }
+      if (!targetGallery || !imageUrl) { showToast('Falha: palco não encontrado.'); return; }
+      const existing = targetGallery.querySelectorAll('.image-wrap').length;
       if (existing >= 10) { showToast('Limite de 10 imagens atingido.'); return; }
       // Processa variantes e cria wrap
       const isDataUrl = typeof imageUrl === 'string' && imageUrl.startsWith('data:image');
       const result = isDataUrl ? { processed: false } : await processImageVariants(imageUrl, 400, false);
       const displayUrl = isDataUrl ? imageUrl : (result.processed ? (result.noOutlineUrl || result.outlineUrl || imageUrl) : imageUrl);
       const wrap = createImageWrap(imageUrl, displayUrl, existing, !!result.processed, result);
-      gallery.appendChild(wrap);
+      targetGallery.appendChild(wrap);
+      try { const st = document.getElementById('stage'); st && st.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
       if (isDataUrl && window.__lastXCardOptions__) {
         wrap.dataset.type = 'x';
-        wrap.dataset.allowedWidths = (window.__lastXCardOptions__.allowedWidths || [15,13,11]).join(',');
         const imgEl = wrap.querySelector('.user-image');
         if (imgEl) {
           imgEl.addEventListener('load', () => {
-            const allowed = (wrap.dataset.allowedWidths || '15,13,11').split(',').map(Number).sort((a,b)=>a-b);
-            const targetW = allowed[allowed.length-1];
-            const baseW = parseFloat(wrap.dataset.baseWidthCm || String(pxToCm(imgEl.getBoundingClientRect().width)));
-            const nextScale = targetW / Math.max(0.0001, baseW);
-            wrap.style.setProperty('--scale', String(nextScale));
-            wrap.dataset.xTargetWidthCm = String(targetW);
-            wrap.dataset.xIndex = String(allowed.indexOf(targetW));
             try {
               const nw = imgEl.naturalWidth || imgEl.width;
               const nh = imgEl.naturalHeight || imgEl.height;
@@ -621,19 +687,25 @@
           }, { once: true });
         }
       }
-      if (isDataUrl && window.__lastIGCardOptions__) {
-        wrap.dataset.type = 'ig';
-        wrap.dataset.allowedWidths = (window.__lastIGCardOptions__.allowedWidths || [15,13,11]).join(',');
+      
+      if (isDataUrl && window.__lastWACardOptions__) {
+        wrap.dataset.type = 'wa';
+        wrap.dataset.waTargetWidthCm = '14';
         const imgEl = wrap.querySelector('.user-image');
         if (imgEl) {
+          const applyTarget = () => {
+            try {
+              const r = imgEl.getBoundingClientRect();
+              const baseW = pxToCm(r.width);
+              if (baseW > 0) {
+                const targetW = 14;
+                const scale = targetW / baseW;
+                wrap.style.setProperty('--scale', String(scale));
+              }
+            } catch {}
+            if (wrap.updateSizeIndicator) wrap.updateSizeIndicator();
+          };
           imgEl.addEventListener('load', () => {
-            const allowed = (wrap.dataset.allowedWidths || '15,13,11').split(',').map(Number).sort((a,b)=>a-b);
-            const targetW = allowed[allowed.length-1];
-            const baseW = parseFloat(wrap.dataset.baseWidthCm || String(pxToCm(imgEl.getBoundingClientRect().width)));
-            const nextScale = targetW / Math.max(0.0001, baseW);
-            wrap.style.setProperty('--scale', String(nextScale));
-            wrap.dataset.xTargetWidthCm = String(targetW);
-            wrap.dataset.xIndex = String(allowed.indexOf(targetW));
             try {
               const nw = imgEl.naturalWidth || imgEl.width;
               const nh = imgEl.naturalHeight || imgEl.height;
@@ -645,8 +717,43 @@
                 imgEl.style.maxHeight = '60vh';
               }
             } catch {}
-            if (wrap.updateSizeIndicator) wrap.updateSizeIndicator();
+            applyTarget();
           }, { once: true });
+          if (imgEl.complete) applyTarget();
+        }
+      }
+      if (isDataUrl && window.__lastFIGCardOptions__) {
+        wrap.dataset.type = 'fig';
+        wrap.dataset.figTargetWidthCm = '14';
+        const imgEl = wrap.querySelector('.user-image');
+        if (imgEl) {
+          const applyTarget = () => {
+            try {
+              const r = imgEl.getBoundingClientRect();
+              const baseW = pxToCm(r.width);
+              if (baseW > 0) {
+                const targetW = 14;
+                const scale = targetW / baseW;
+                wrap.style.setProperty('--scale', String(scale));
+              }
+            } catch {}
+            if (wrap.updateSizeIndicator) wrap.updateSizeIndicator();
+          };
+          imgEl.addEventListener('load', () => {
+            try {
+              const nw = imgEl.naturalWidth || imgEl.width;
+              const nh = imgEl.naturalHeight || imgEl.height;
+              if (nw && nh) {
+                imgEl.style.aspectRatio = `${nw}/${nh}`;
+                imgEl.style.width = 'auto';
+                imgEl.style.height = 'auto';
+                imgEl.style.maxWidth = '92vw';
+                imgEl.style.maxHeight = '60vh';
+              }
+            } catch {}
+            applyTarget();
+          }, { once: true });
+          if (imgEl.complete) applyTarget();
         }
       }
       if (!(isDataUrl && window.__lastXCardOptions__)) {
@@ -658,6 +765,8 @@
     }
   }
 
+  try { window.addImageFromUrl = addImageFromUrl; } catch {}
+
   function showToast(message, timeout = 2200) {
     const el = document.getElementById('toast');
     if (!el) return;
@@ -666,6 +775,7 @@
     window.clearTimeout(el._tId);
     el._tId = window.setTimeout(() => el.classList.remove('show'), timeout);
   }
+  try { window.showToast = showToast; } catch {}
 
   // Adicionar todas as imagens carregadas ao carrinho com preço por cm²
   function addAllImagesToCart() {
@@ -760,6 +870,11 @@ if (fileInput) {
   };
 
   async function openModal(category) {
+    const cat = String(category || '').toLowerCase();
+    if (cat === 'whatsapp') { try { closeModal(); } catch {} openWhatsAppDesigner(); return; }
+    if (cat === 'figurinhas') { try { closeModal(); } catch {} openFigurinhasDesigner(); return; }
+    if (cat === 'instagram') { try { closeModal(); } catch {} openInstagramDesigner(); return; }
+    if (cat === 'x') { try { closeModal(); } catch {} openXDesigner(); return; }
     modalTitle.textContent = `Selecione um modelo: ${category}`;
     let loadedFromDB = false;
     try {
@@ -798,7 +913,7 @@ if (fileInput) {
           </div>
         `;
         card.addEventListener('click', async () => {
-          await addImageFromUrl(m.imageUrl || m.img || m.thumbnailUrl);
+          await window.addImageFromUrl(m.imageUrl || m.img || m.thumbnailUrl);
           try { closeModal(); } catch {}
         });
         grid.appendChild(card);
@@ -849,7 +964,7 @@ if (fileInput) {
               btn.className = 'option-select';
               btn.type = 'button';
               btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => { await addImageFromUrl(url); try { closeModal(); } catch {} });
+              btn.addEventListener('click', async () => { await window.addImageFromUrl(url); try { closeModal(); } catch {} });
               body.appendChild(btn);
               card.appendChild(img);
               card.appendChild(body);
@@ -880,7 +995,7 @@ if (fileInput) {
               btn.className = 'option-select';
               btn.type = 'button';
               btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => { await addImageFromUrl(f.url); try { closeModal(); } catch {} });
+              btn.addEventListener('click', async () => { await window.addImageFromUrl(f.url); try { closeModal(); } catch {} });
               body.appendChild(btn);
               card.appendChild(img);
               card.appendChild(body);
@@ -916,7 +1031,7 @@ if (fileInput) {
               btn.className = 'option-select';
               btn.type = 'button';
               btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => { await addImageFromUrl(url); try { closeModal(); } catch {} });
+              btn.addEventListener('click', async () => { await window.addImageFromUrl(url); try { closeModal(); } catch {} });
               body.appendChild(btn);
               card.appendChild(img);
               card.appendChild(body);
@@ -947,7 +1062,7 @@ if (fileInput) {
               btn.className = 'option-select';
               btn.type = 'button';
               btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => { await addImageFromUrl(f.url); try { closeModal(); } catch {} });
+              btn.addEventListener('click', async () => { await window.addImageFromUrl(f.url); try { closeModal(); } catch {} });
               body.appendChild(btn);
               card.appendChild(img);
               card.appendChild(body);
@@ -1014,7 +1129,7 @@ if (fileInput) {
               btn.className = 'option-select';
               btn.type = 'button';
               btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => { await addImageFromUrl(f.url); try { closeModal(); } catch {} });
+              btn.addEventListener('click', async () => { await window.addImageFromUrl(f.url); try { closeModal(); } catch {} });
               body.appendChild(btn);
               card.appendChild(img);
               card.appendChild(body);
@@ -1025,72 +1140,8 @@ if (fileInput) {
         }
       } catch { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
     }
-    if (normalized === 'Figurinhas') {
-      try {
-        const res = await fetch('/api/figurinhas', { cache: 'no-store' });
-        if (res && res.ok) {
-          const files = await res.json();
-          if (Array.isArray(files)) {
-            if (files.length === 0) { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
-            const seen = new Set();
-            for (const f of files) {
-              const key = String(f.url || f.name).toLowerCase();
-              if (seen.has(key)) continue; seen.add(key);
-              const card = document.createElement('div');
-              card.className = 'option-card';
-              const img = document.createElement('img');
-              img.src = f.url;
-              img.alt = f.name || 'Figurinha';
-              const body = document.createElement('div');
-              body.className = 'option-body';
-              const btn = document.createElement('button');
-              btn.className = 'option-select';
-              btn.type = 'button';
-              btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => { await addImageFromUrl(f.url); try { closeModal(); } catch {} });
-              body.appendChild(btn);
-              card.appendChild(img);
-              card.appendChild(body);
-              modalGrid.appendChild(card);
-            }
-            return;
-          }
-        }
-      } catch { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
-    }
-    if (normalized === 'Whatsapp') {
-      try {
-        const res = await fetch('/api/whatsapp', { cache: 'no-store' });
-        if (res && res.ok) {
-          const files = await res.json();
-          if (Array.isArray(files)) {
-            if (files.length === 0) { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
-            const seen = new Set();
-            for (const f of files) {
-              const key = String(f.url || f.name).toLowerCase();
-              if (seen.has(key)) continue; seen.add(key);
-              const card = document.createElement('div');
-              card.className = 'option-card';
-              const img = document.createElement('img');
-              img.src = f.url;
-              img.alt = f.name || 'Whatsapp';
-              const body = document.createElement('div');
-              body.className = 'option-body';
-              const btn = document.createElement('button');
-              btn.className = 'option-select';
-              btn.type = 'button';
-              btn.textContent = 'Selecionar';
-              btn.addEventListener('click', async () => { await addImageFromUrl(f.url); try { closeModal(); } catch {} });
-              body.appendChild(btn);
-              card.appendChild(img);
-              card.appendChild(body);
-              modalGrid.appendChild(card);
-            }
-            return;
-          }
-        }
-      } catch { const empty = document.createElement('div'); empty.textContent = 'Sem opções ainda. Em breve novidades!'; modalGrid.appendChild(empty); return; }
-    }
+    if (normalized === 'Figurinhas') { try { closeModal(); } catch {} openFigurinhasDesigner(); return; }
+    if (normalized === 'Whatsapp') { try { closeModal(); } catch {} openWhatsAppDesigner(); return; }
     if (normalized === 'Instagram') { try { closeModal(); } catch {} openInstagramDesigner(); return; }
     if (normalized === 'X') { try { closeModal(); } catch {} openXDesigner(); return; }
     if (normalized === 'Quadrinhos') {
@@ -1143,7 +1194,7 @@ if (fileInput) {
       btn.type = 'button';
       btn.textContent = 'Selecionar';
       btn.addEventListener('click', async () => {
-        await addImageFromUrl(item.src);
+        await window.addImageFromUrl(item.src);
         try { closeModal(); } catch {}
       });
       body.appendChild(btn);
@@ -1159,7 +1210,7 @@ if (fileInput) {
     overlay.className = 'modal-backdrop';
     const dateStr = new Date().toLocaleDateString('pt-BR');
     overlay.innerHTML = `
-      <div class="modal-card x-designer-card">
+      <div class="modal-card x-designer-card" style="width:min(640px,92vw);padding-bottom:1mm">
         <header class="modal-header"><h2 class="modal-title">Criar seu Íma no estilo da mensagem do X</h2><button class="modal-close" type="button">×</button></header>
         <div class="x-designer">
           <div class="x-preview">
@@ -1255,10 +1306,128 @@ if (fileInput) {
       try {
         await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
         const el = overlay.querySelector('#xCard');
-        const canvas = await window.html2canvas(el, { backgroundColor: '#ffffff', scale: window.devicePixelRatio || 1 });
+        const canvas = await window.html2canvas(el, { backgroundColor: null, scale: 1 });
         const dataUrl = canvas.toDataURL('image/png');
         window.__lastXCardOptions__ = { allowedWidths: [15,13,11] };
-        await addImageFromUrl(dataUrl);
+        await window.addImageFromUrl(dataUrl);
+        const catModal = document.getElementById('categoryModal');
+        if (catModal) { catModal.classList.add('visually-hidden'); catModal.setAttribute('aria-hidden','true'); }
+        close();
+      } catch { close(); }
+    });
+  }
+
+  async function openWhatsAppDesigner() {
+    try { window.__skipCategoryModal__ = Date.now() + 2000; } catch {}
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-backdrop';
+    overlay.innerHTML = `
+      <div id="waModal" class="modal-card x-designer-card">
+        <style>
+          #waModal { padding: 16px; }
+          #waModal .wa-controls { max-width: 600px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+          #waModal .wa-controls input[type="text"] { width: 100%; padding: 4px 6px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
+          #waModal .wa-color-options { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+          #waModal .wa-bubble { width: 100mm; height: 20mm; position: relative; margin: 0 auto; padding: 4px 32px 6px 10px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; }
+          #waModal .wa-bubble::before { content: ""; position: absolute; left: 6mm; right: 6mm; bottom: -2mm; height: 3mm; background: rgba(0,0,0,0.18); filter: blur(1.2mm); border-radius: 999px; }
+          #waModal .wa-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+          #waModal .wa-text { position: relative; z-index: 1; font-size: 6mm; line-height: 1.1; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: -apple-system, system-ui, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+          #waModal .wa-footer { position: absolute; right: 10mm; bottom: 2px; display: flex; align-items: center; gap: 4px; font-size: 7pt; z-index: 1; }
+          #waModal .wa-time { color: #555; font-size: 4mm; }
+          #waModal .wa-checks { color: #34b7f1; font-size: 4.2mm; }
+          #waModal .x-designer { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 8px; }
+          @media (min-width: 769px) { #waModal .x-designer { grid-template-columns: 1fr; } }
+          #waModal .x-panel { display: grid; gap: 12px; justify-items: start; max-width: 600px; width: 100%; margin: 0 auto; }
+        </style>
+        <div class="x-designer">
+          <div class="x-preview">
+            <div class="wa-bubble" id="waBubble" style="--bubble-bg:#D9FDD4;">
+              <svg id="waSvg" class="wa-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+              <div class="wa-text" id="bubbleText">Mensagem usuário aqui!!!</div>
+              <div class="wa-footer">
+                <span class="wa-time" id="bubbleTime">08:37</span>
+                <span class="wa-checks">✔✔</span>
+              </div>
+            </div>
+          </div>
+          <div class="x-panel">
+            <div class="wa-controls">
+              <label>
+                Mensagem (máx. 26 caracteres):
+                <input type="text" id="waMsgInput" maxlength="26" placeholder="Mensagem usuário aqui!!!">
+              </label>
+              <label>
+                Horário:
+                <input type="text" id="waTimeInput" value="08:37">
+              </label>
+              <div class="wa-color-options">
+                Cor do balão:
+                <label><input type="radio" name="waBubbleColor" value="green" checked> Verde (#D9FDD4)</label>
+                <label><input type="radio" name="waBubbleColor" value="white"> Branco (#FFFFFF)</label>
+              </div>
+            </div>
+            <div class="x-actions" style="justify-content:flex-start">
+              <button class="btn btn-light" type="button" id="waCancel">Cancelar</button>
+              <button class="btn btn-primary" type="button" id="waAdd">Adicionar ao palco</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = () => { try { window.__skipCategoryModal__ = Date.now() + 2000; } catch {} overlay.remove(); };
+    const msgInput = overlay.querySelector('#waMsgInput');
+    const timeInput = overlay.querySelector('#waTimeInput');
+    const colorRadios = overlay.querySelectorAll('input[name="waBubbleColor"]');
+    const bubbleText = overlay.querySelector('#bubbleText');
+    const bubbleTime = overlay.querySelector('#bubbleTime');
+    const bubble = overlay.querySelector('#waBubble');
+    const waSvg = overlay.querySelector('#waSvg');
+    if (msgInput && bubbleText) { msgInput.addEventListener('input', () => { bubbleText.textContent = msgInput.value || 'Mensagem usuário aqui!!!'; }); }
+    if (timeInput && bubbleTime) { timeInput.addEventListener('input', () => { bubbleTime.textContent = timeInput.value || '08:37'; }); }
+    const updateBubbleColor = (color) => {
+      const bg = color === 'white' ? '#FFFFFF' : '#D9FDD4';
+      if (bubble) bubble.style.setProperty('--bubble-bg', bg);
+      const path = waSvg && waSvg.querySelector('path');
+      if (path) path.setAttribute('fill', bg);
+    };
+    const loadBubbleSvg = async () => {
+      try {
+        const res = await fetch('/assets/WHATSAPP/MODELO%20WHATS.svg', { cache: 'no-store' });
+        if (!res.ok) return;
+        const txt = await res.text();
+        const m = txt.match(/<path[^>]*class=\"[^\"]*fil0[^\"]*\"[^>]*d=\"([^\"]+)\"/i);
+        const d = m && m[1] ? m[1] : null;
+        if (!d || !waSvg) return;
+        const ns = 'http://www.w3.org/2000/svg';
+        const path = document.createElementNS(ns, 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('fill', getComputedStyle(bubble).getPropertyValue('--bubble-bg') || '#D9FDD4');
+        path.setAttribute('stroke', '#A9ABAE');
+        path.setAttribute('stroke-width', '20');
+        waSvg.appendChild(path);
+        waSvg.setAttribute('viewBox', '0 0 21000 29700');
+        const bbox = path.getBBox();
+        waSvg.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+        bubble.appendChild(waSvg);
+      } catch {}
+    };
+    await loadBubbleSvg();
+    if (msgInput && bubbleText) { msgInput.addEventListener('keyup', () => { bubbleText.textContent = msgInput.value || 'Mensagem usuário aqui!!!'; }); }
+    if (timeInput && bubbleTime) { timeInput.addEventListener('keyup', () => { bubbleTime.textContent = timeInput.value || '08:37'; }); }
+    colorRadios.forEach(r => { r.addEventListener('change', () => updateBubbleColor(r.value)); });
+    updateBubbleColor('green');
+    const btnCancel = overlay.querySelector('#waCancel');
+    if (btnCancel) btnCancel.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); close(); });
+    const btnAdd = overlay.querySelector('#waAdd');
+    if (btnAdd) btnAdd.addEventListener('click', async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try {
+        await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+        const el = overlay.querySelector('#waBubble');
+        const canvas = await window.html2canvas(el, { backgroundColor: null, scale: 1 });
+        const dataUrl = canvas.toDataURL('image/png');
+        window.__lastWACardOptions__ = { targetWidthCm: 14 };
+        await window.addImageFromUrl(dataUrl);
         const catModal = document.getElementById('categoryModal');
         if (catModal) { catModal.classList.add('visually-hidden'); catModal.setAttribute('aria-hidden','true'); }
         close();
@@ -1272,6 +1441,7 @@ if (fileInput) {
     const href = a.getAttribute('href') || '';
     if (href.startsWith('http')) return;
     e.preventDefault();
+    if (window.__skipCategoryModal__ && Date.now() < window.__skipCategoryModal__) return;
     const category = a.getAttribute('data-category');
     if (!category) return;
     openModal(category);
@@ -1431,74 +1601,10 @@ if (fileInput) {
 
     // Zoom: cada clique ajusta ±1cm no MAIOR lado (3–15cm)
       if (e.target.closest('.btn-zoom-in')) {
-        if (wrap.dataset.zooming === '1') return;
-        wrap.dataset.zooming = '1';
-        const cur = parseFloat(getComputedStyle(wrap).getPropertyValue('--scale')) || 1;
-        const imgRect = img.getBoundingClientRect();
-        if (wrap.dataset.type === 'x' || wrap.dataset.type === 'ig') {
-          const baseW = parseFloat(wrap.dataset.baseWidthCm || String(pxToCm(imgRect.width)));
-          const allowed = (wrap.dataset.allowedWidths || '15,13,11').split(',').map(Number).sort((a,b)=>a-b);
-          let idx = parseInt(wrap.dataset.xIndex || '-1', 10);
-          if (isNaN(idx) || idx < 0) {
-            const curTarget = Number(wrap.dataset.xTargetWidthCm || Math.round(baseW * cur));
-            idx = allowed.findIndex(w => w >= curTarget);
-            if (idx < 0) idx = allowed.length - 1;
-          }
-          idx = Math.min(idx + 1, allowed.length - 1);
-          const targetW = allowed[idx];
-          const nextScale = targetW / Math.max(0.0001, baseW);
-          wrap.style.setProperty('--scale', String(nextScale));
-          wrap.dataset.xTargetWidthCm = String(targetW);
-          wrap.dataset.xIndex = String(idx);
-          if (wrap.updateSizeIndicator) wrap.updateSizeIndicator();
-          wrap.dataset.zooming = '0';
-          return;
-        }
-        const widthCm = pxToCm(imgRect.width * cur);
-        const heightCm = pxToCm(imgRect.height * cur);
-        const curMaxCm = Math.max(widthCm, heightCm);
-        const targetMaxCm = Math.min(MAX_SIZE_CM, curMaxCm + 1);
-        if (targetMaxCm === curMaxCm) { wrap.dataset.zooming = '0'; return; }
-        const factor = targetMaxCm / curMaxCm;
-        const next = cur * factor;
-        wrap.style.setProperty('--scale', String(next));
-        if (wrap.updateSizeIndicator) wrap.updateSizeIndicator();
         wrap.dataset.zooming = '0';
         return;
       }
       if (e.target.closest('.btn-zoom-out')) {
-        if (wrap.dataset.zooming === '1') return;
-        wrap.dataset.zooming = '1';
-        const cur = parseFloat(getComputedStyle(wrap).getPropertyValue('--scale')) || 1;
-        const imgRect = img.getBoundingClientRect();
-        if (wrap.dataset.type === 'x' || wrap.dataset.type === 'ig') {
-          const baseW = parseFloat(wrap.dataset.baseWidthCm || String(pxToCm(imgRect.width)));
-          const allowed = (wrap.dataset.allowedWidths || '15,13,11').split(',').map(Number).sort((a,b)=>a-b);
-          let idx = parseInt(wrap.dataset.xIndex || '-1', 10);
-          if (isNaN(idx) || idx < 0) {
-            const curTarget = Number(wrap.dataset.xTargetWidthCm || Math.round(baseW * cur));
-            idx = allowed.findIndex(w => w >= curTarget);
-            if (idx < 0) idx = allowed.length - 1;
-          }
-          idx = Math.max(idx - 1, 0);
-          const targetW = allowed[idx];
-          const nextScale = targetW / Math.max(0.0001, baseW);
-          wrap.style.setProperty('--scale', String(nextScale));
-          wrap.dataset.xTargetWidthCm = String(targetW);
-          wrap.dataset.xIndex = String(idx);
-          if (wrap.updateSizeIndicator) wrap.updateSizeIndicator();
-          wrap.dataset.zooming = '0';
-          return;
-        }
-        const widthCm = pxToCm(imgRect.width * cur);
-        const heightCm = pxToCm(imgRect.height * cur);
-        const curMaxCm = Math.max(widthCm, heightCm);
-        const targetMaxCm = Math.max(MIN_SIZE_CM, curMaxCm - 1);
-        if (targetMaxCm === curMaxCm) { wrap.dataset.zooming = '0'; return; }
-        const factor = targetMaxCm / curMaxCm;
-        const next = cur * factor;
-        wrap.style.setProperty('--scale', String(next));
-        if (wrap.updateSizeIndicator) wrap.updateSizeIndicator();
         wrap.dataset.zooming = '0';
         return;
       }
@@ -1724,69 +1830,162 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => syncHeight());
   } catch {}
 });
-  async function openInstagramDesigner() {
+  async function openInstagramDesigner(state = {}) {
+    try { window.__skipCategoryModal__ = Date.now() + 2000; } catch {}
     const overlay = document.createElement('div');
     overlay.className = 'modal-backdrop';
     overlay.innerHTML = `
       <div class="modal-card x-designer-card">
         <header class="modal-header"><h2 class="modal-title">Criar seu Íma no estilo do Instagram</h2><button class="modal-close" type="button">×</button></header>
         <div class="ig-designer">
-          <div class="x-preview" style="display:grid;place-items:center;padding:12px;">
-            <div id="igCard" class="x-card ig-card" style="width:65mm;height:90mm;background-image:url('/assets/INSTAGRAM/modelo%20foto%20instagram.svg');background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;border-radius:10px;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,.12);overflow:hidden;">
-              <div class="ig-top" style="position:absolute;left:4mm;top:4mm;right:4mm;height:12mm;display:flex;align-items:center;gap:4mm;">
-                <div id="igBadge" class="ig-badge" style="width:12mm;height:12mm;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#9333ea,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:pointer;">Avatar</div>
-                <div style="display:flex;align-items:center;gap:2mm;flex:1;">
-                  <div id="igUser" style="font-weight:600">@Nome_usuário</div>
-                  <div title="verificado" style="width:4mm;height:4mm;border-radius:50%;background:#0ea5e9;display:flex;align-items:center;justify-content:center;">
-                    <svg viewBox="0 0 24 24" width="10" height="10" fill="#fff"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l8.1-8.1 1.4 1.4z"/></svg>
+          <div class="x-preview" style="display:grid;align-items:center;justify-items:start;padding:12px;">
+            <div id="igCard" class="x-card ig-card" style="width:60mm;height:90mm;background-image:url('/assets/INSTAGRAM/modelo%20foto%20instagram.svg');background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;border-radius:10px;margin:0;border:1px solid rgba(255,255,255,0.85);box-shadow:0 14px 30px rgba(0,0,0,.18), 0 4px 10px rgba(0,0,0,.12);overflow:hidden;">
+              <div class="ig-top" style="position:absolute;left:2mm;top:1mm;right:2mm;height:12mm;display:flex;align-items:center;gap:1.5mm;">
+                <div id="igBadge" class="ig-badge" style="width:8mm;height:8mm;box-sizing:border-box;border-radius:999px;overflow:hidden;background:linear-gradient(135deg,#9333ea,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:pointer;pointer-events:auto;"></div>
+                <div style="display:flex;align-items:center;gap:0.5mm;">
+                  <div id="igUser" style="font-weight:600;font-size:11px">@Nome_usuário</div>
+                  <div title="verificado" style="width:4mm;height:4mm;display:flex;align-items:center;justify-content:center;">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" style="width:100%;height:100%">
+                      <path d="M12 2l2.5 3.5 4-1-1 4 3.5 2.5-3.5 2.5 1 4-4-1-2.5 3.5-2.5-3.5-4 1 1-4-3.5-2.5 3.5-2.5-1-4 4 1z" fill="#1DA1F2"/>
+                      <path d="M9.5 12l2.2 2.2 4.3-4.3" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                   </div>
                 </div>
-                <div style="margin-left:auto;display:flex;align-items:center;gap:3mm;">
-                  <div class="pill" style="border:1px solid #999;border-radius:999px;padding:2px 6px;color:#111;font-size:11px;background:#f3f4f6">@imantados</div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:1mm;">
+                  <div class="pill" style="border:1px solid #999;border-radius:999px;padding:4px;color:#111;font-size:10px;letter-spacing:-0.2px;background:#f3f4f6">@imantados</div>
                   <div class="menu" aria-label="mais">⋯</div>
                 </div>
               </div>
-              <div id="igPhoto" class="ig-photo" style="position:absolute;left:44.5mm;top:10mm;width:56mm;height:70mm;border-radius:6mm;background:#f97316;display:grid;place-items:center;overflow:hidden;cursor:pointer;">
+              <div id="igPhoto" class="ig-photo" style="position:absolute;left:50%;top:calc(50% - 2mm);transform:translate(-50%,-50%);width:60mm;height:70mm;border-radius:6mm;background:#f97316;display:grid;place-items:center;overflow:hidden;cursor:pointer;">
                 <div style="color:#2f2f2f;font-size:16px;text-align:center;line-height:1.3">foto<br>usuario</div>
               </div>
-              <div id="igMessage" class="ig-message" style="position:absolute;left:4mm;right:20mm;bottom:18mm;color:#111;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Mensagem do Cliente aqui....</div>
-              <div class="ig-bottom" style="position:absolute;left:4mm;right:4mm;bottom:6mm;height:14mm;display:grid;grid-template-columns:1fr auto;gap:3mm;align-items:center;">
-                <div style="display:flex;align-items:center;gap:5mm;color:#4b5563;font-size:11px;">
-                  <div style="display:flex;align-items:center;gap:2mm"><span>♡</span><span>5.864</span></div>
-                  <div style="display:flex;align-items:center;gap:2mm"><span>💬</span><span>328</span></div>
-                  <div style="display:flex;align-items:center;gap:2mm"><span>🔁</span><span>30</span></div>
-                  <div style="display:flex;align-items:center;gap:2mm"><span>🎞️</span><span>1.624</span></div>
+              <div class="ig-bottom" style="position:absolute;left:2mm;right:2mm;top:calc(50% - 2mm + 35mm + 1.5mm);height:6mm;display:flex;justify-content:center;gap:1mm;align-items:center;z-index:2;">
+                <div style="display:flex;align-items:center;gap:1mm;color:#111;font-size:11px;">
+                  <div style="display:flex;align-items:center;gap:2mm">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4.7-3.6-7.5-6.2-8.6-8.6C2.2 9.8 3.7 7 6.5 7c1.7 0 3 .9 3.7 2.1C10.9 7.9 12.2 7 13.9 7c2.8 0 4.3 2.8 3.1 5.4C16 14.8 12 17.8 12 21z"/></svg>
+                    <span>5.864</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:2mm">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14a7 7 0 0 1-7 7H9l-4 2 2-4A7 7 0 1 1 21 7v7z"/></svg>
+                    <span>328</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:2mm">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h8l-2-2M17 17H9l2 2"/><path d="M7 12a5 5 0 0 1 5-5"/><path d="M17 12a5 5 0 0 1-5 5"/></svg>
+                    <span>30</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:2mm">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-6-8-4z"/></svg>
+                    <span>1.624</span>
+                  </div>
                 </div>
-                <div style="text-align:right;color:#9ca3af;font-size:11px">...mais</div>
+                <div style="display:flex;align-items:center;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#111" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
+                </div>
               </div>
+              <div id="igMessage" class="ig-message" style="position:absolute;left:2mm;right:2mm;top:calc(50% - 2mm + 35mm + 1.5mm + 6mm);color:#111;font-size:12px;white-space:pre-line;overflow:hidden;text-align:center;z-index:1;">Mensagem do Cliente aqui....</div>
             </div>
           </div>
           <form class="x-form" autocomplete="off">
             <input id="inUser" type="text" placeholder="@Nome_usuário" value="@Nome_usuário">
-            <textarea id="inCaption" rows="2" placeholder="Mensagem do Cliente aqui....">Mensagem do Cliente aqui....</textarea>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <textarea id="inCaption" rows="2" placeholder="Mensagem do Cliente aqui....">Mensagem do Cliente aqui....</textarea>
+              <span id="captionCounter" style="font-size:11px;color:#374151;white-space:nowrap">Digitados 0 · Faltam 60</span>
+            </div>
           </form>
-          <div class="upload-actions" style="display:flex;gap:8px;align-items:center;padding:12px 16px;">
-            <input id="inBadgeFile" type="file" accept="image/*" class="visualmente-hidden">
-            <input id="inPhotoFile" type="file" accept="image/*" class="visualmente-hidden">
+          <div class="upload-actions" style="display:flex;flex-direction:column;gap:8px;align-items:flex-start;justify-content:flex-start;padding:6px 16px 12px;">
+            <input id="inBadgeFile" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;left:-9999px;">
+            <input id="inPhotoFile" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;left:-9999px;">
             <label class="btn btn-light" for="inBadgeFile">Carregar avatar do selo</label>
             <label class="btn btn-light" for="inPhotoFile">Carregar foto/avatar (56mm x 70mm)</label>
           </div>
-        </div>
-        <div class="x-actions">
+          </div>
+        <div class="x-actions" style="justify-content:flex-start">
           <button class="btn btn-light" type="button" id="igCancel">Cancelar</button>
+          <button class="btn btn-light" type="button" id="igPreview">Preview</button>
           <button class="btn btn-primary" type="button" id="igAdd">Adicionar ao palco</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
-    const close = () => { overlay.remove(); };
-    overlay.querySelector('.modal-close').addEventListener('click', close);
-    overlay.querySelector('#igCancel').addEventListener('click', close);
+    const close = () => { try { window.__skipCategoryModal__ = Date.now() + 2000; } catch {} overlay.remove(); };
+    overlay.querySelector('.modal-close').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); close(); });
+    overlay.querySelector('#igCancel').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); close(); });
+    
+    overlay.querySelector('#igAdd').addEventListener('click', async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try {
+        const el = overlay.querySelector('#igCard');
+        let dataUrl = await captureElToDataUrl(el, 'png');
+        if (!dataUrl) {
+          await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+          const canv = await window.html2canvas(el, { backgroundColor: null, scale: 1, useCORS: true, allowTaint: true, foreignObjectRendering: true });
+          dataUrl = canv.toDataURL('image/png');
+        }
+        if (!dataUrl) { showToast('Falha ao capturar o card.'); return; }
+        let gEl = document.getElementById('gallery');
+        if (!gEl) {
+          const st = document.getElementById('stage');
+          const newGal = document.createElement('div');
+          newGal.id = 'gallery';
+          newGal.className = 'gallery';
+          (st || document.body).appendChild(newGal);
+          gEl = newGal;
+        }
+        const before = gEl.querySelectorAll('.image-wrap').length;
+        const wrap = createImageWrap(dataUrl, dataUrl, before, false, { processed: false });
+        wrap.dataset.type = 'ig';
+        gEl.appendChild(wrap);
+        try { const st = document.getElementById('stage'); st && st.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
+        const catModal = document.getElementById('categoryModal');
+        if (catModal) { catModal.classList.add('visually-hidden'); catModal.setAttribute('aria-hidden','true'); }
+        close();
+      } catch { close(); }
+    });
+    const btnPrev = overlay.querySelector('#igPreview');
+    if (btnPrev) btnPrev.addEventListener('click', async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try {
+        const el = overlay.querySelector('#igCard');
+        let dataUrl = await captureElToDataUrl(el, 'png');
+        if (!dataUrl) {
+          await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+          const canv = await window.html2canvas(el, { backgroundColor: null, scale: 1, useCORS: true, allowTaint: true, foreignObjectRendering: true });
+          dataUrl = canv.toDataURL('image/png');
+        }
+        if (!dataUrl) { showToast('Falha ao gerar preview.'); return; }
+        const curState = {
+          user: (overlay.querySelector('#igUser')?.textContent)||'',
+          caption: (overlay.querySelector('#igMessage')?.textContent)||'',
+          photoUrl: (overlay.querySelector('#igPhoto img')?.src)||'',
+          badgeUrl: (overlay.querySelector('#igBadge img')?.src)||'',
+        };
+        // Construir e abrir modal de preview inline para reduzir riscos de escopo
+        const pv = document.createElement('div');
+        pv.className = 'modal-backdrop';
+        pv.innerHTML = `
+          <div class="modal-card x-designer-card">
+            <header class="modal-header"><h2 class="modal-title">Preview Instagram</h2><button class="modal-close" type="button">×</button></header>
+            <div style="display:grid;gap:12px;padding:16px;justify-items:center;">
+              <img src="${dataUrl}" alt="Preview" style="max-width:92vw;max-height:60vh;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.25);" />
+              <div class="x-actions" style="justify-content:flex-start">
+                <button class="btn btn-light" type="button" id="igBack">Voltar à edição</button>
+                <button class="btn btn-primary" type="button" id="igAddStage">Adicionar ao palco</button>
+              </div>
+            </div>
+          </div>`;
+        document.body.appendChild(pv);
+        const pvClose = () => pv.remove();
+        pv.querySelector('.modal-close').addEventListener('click', (e2) => { e2.preventDefault(); e2.stopPropagation(); pvClose(); });
+        pv.querySelector('#igBack').addEventListener('click', async (e2) => { e2.preventDefault(); e2.stopPropagation(); pvClose(); await openInstagramDesigner(curState); });
+        pv.querySelector('#igAddStage').addEventListener('click', async (e2) => { e2.preventDefault(); e2.stopPropagation(); try { await window.addImageFromUrl(dataUrl); pvClose(); } catch { pvClose(); } });
+        close();
+      } catch { showToast('Erro inesperado ao abrir preview.'); }
+    });
     const bind = (sel, cb) => { const el = overlay.querySelector(sel); if (el) el.addEventListener('input', cb); };
-    const inUserEl = overlay.querySelector('#inUser'); if (inUserEl) inUserEl.setAttribute('maxlength','24');
-    const inCaptionEl = overlay.querySelector('#inCaption'); if (inCaptionEl) inCaptionEl.setAttribute('maxlength','64');
-    bind('#inUser', (e) => { const t=(e.target.value || '@Nome_usuário').slice(0,24); const h=overlay.querySelector('#igUser'); if (h) h.textContent=t; });
-    const limitCaption = (s) => { const max=64; return (s||'').length>max ? (s||'').slice(0,max-1)+'…' : (s||''); };
-    bind('#inCaption', (e) => { const m=overlay.querySelector('#igMessage'); if (m) m.textContent = limitCaption(e.target.value || ''); });
+    const inUserEl = overlay.querySelector('#inUser'); if (inUserEl) { inUserEl.setAttribute('maxlength','12'); const sLen = Math.max(((inUserEl.value||'').length), ((inUserEl.placeholder||'').length), 1); inUserEl.setAttribute('size', String(sLen)); inUserEl.style.width = `${sLen}ch`; }
+    const inCaptionEl = overlay.querySelector('#inCaption'); if (inCaptionEl) { inCaptionEl.setAttribute('maxlength','60'); inCaptionEl.setAttribute('rows','2'); inCaptionEl.setAttribute('wrap','off'); const raw = (inCaptionEl.value||'').replace(/\r?\n/g,'').slice(0,60); const l1 = raw.slice(0,30); const l2 = raw.slice(30,60); const shaped = l2 ? l1+'\n'+l2 : l1; inCaptionEl.value = shaped; const maxLen = Math.min(30, Math.max(l1.length, l2.length || 0) || 1); inCaptionEl.style.width = `${maxLen}ch`; const cc = overlay.querySelector('#captionCounter'); if (cc) { const typed = raw.length; const remain = 60 - typed; cc.textContent = `Digitados ${typed} · Faltam ${remain}`; } }
+    bind('#inUser', (e) => { let v = e.target.value || '@Nome_usuário'; v = v.slice(0,12); const h=overlay.querySelector('#igUser'); if (h) h.textContent=v; const ch = Math.max(v.length, (e.target.placeholder||'').length, 1); e.target.setAttribute('size', String(ch)); e.target.style.width = `${ch}ch`; });
+    const formatCaption = (s) => { const clean=(s||'').replace(/\r?\n/g,'').slice(0,60); const l1=clean.slice(0,30); const l2=clean.slice(30,60); return l2 ? l1+'\n'+l2 : l1; };
+    bind('#inCaption', (e) => { const val=formatCaption(e.target.value||''); e.target.value=val; const parts = val.split('\n'); const maxLen = Math.min(30, Math.max(parts[0]?.length||0, parts[1]?.length||0) || 1); e.target.style.width = `${maxLen}ch`; const m=overlay.querySelector('#igMessage'); if (m) { m.textContent = val; m.style.whiteSpace = 'pre-line'; } const cc = overlay.querySelector('#captionCounter'); if (cc) { const typed = val.replace(/\n/g,'').length; const remain = 60 - typed; cc.textContent = `Digitados ${typed} · Faltam ${remain}`; } });
     const inPhoto = overlay.querySelector('#inPhotoFile');
     if (inPhoto) {
       inPhoto.addEventListener('change', async () => {
@@ -1799,26 +1998,170 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const inBadge = overlay.querySelector('#inBadgeFile');
     if (inBadge) {
+      inBadge.disabled = false;
       inBadge.addEventListener('change', async () => {
         const f = inBadge.files && inBadge.files[0];
         if (!f) return;
         const url = URL.createObjectURL(f);
         const bd = overlay.querySelector('#igBadge');
-        bd.innerHTML = `<img src="${url}" alt="selo" style="width:100%;height:100%;object-fit:cover;">`;
+        bd.innerHTML = `<img src="${url}" alt="selo" style="display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
       });
     }
     const bdEl = overlay.querySelector('#igBadge'); bdEl && bdEl.addEventListener('click', () => { try { const i = overlay.querySelector('#inBadgeFile'); i && i.click(); } catch {} });
     const phEl = overlay.querySelector('#igPhoto'); phEl && phEl.addEventListener('click', () => { try { const i = overlay.querySelector('#inPhotoFile'); i && i.click(); } catch {} });
-    overlay.querySelector('#igAdd').addEventListener('click', async () => {
+    // Restaurar estado se fornecido
+    try {
+      if (state.user) { const h=overlay.querySelector('#igUser'); const iu=overlay.querySelector('#inUser'); if (h) h.textContent=state.user; if (iu) iu.value=state.user; }
+      if (state.caption) { const m=overlay.querySelector('#igMessage'); const ic=overlay.querySelector('#inCaption'); if (m) m.textContent=state.caption; if (ic) ic.value=state.caption; }
+      if (state.photoUrl) { const ph=overlay.querySelector('#igPhoto'); if (ph) ph.innerHTML = `<img src="${state.photoUrl}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`; }
+      if (state.badgeUrl) { const bd=overlay.querySelector('#igBadge'); if (bd) bd.innerHTML = `<img src="${state.badgeUrl}" alt="selo" style="display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
+    } catch {}
+    
+  }
+
+  async function openFigurinhasDesigner() {
+    try { window.__skipCategoryModal__ = Date.now() + 2000; } catch {}
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-backdrop';
+    overlay.innerHTML = `
+      <div class="modal-card x-designer-card">
+        <header class="modal-header"><h2 class="modal-title">Criar sua Figurinha</h2><button class="modal-close" type="button">×</button></header>
+        <div class="ig-designer">
+          <div class="x-preview" style="display:grid;align-items:center;justify-items:start;padding:12px;">
+            <div id="figCard" class="x-card ig-card" style="width:60mm;height:90mm;background-color:#EBEBEB;background-image:url('/assets/INSTAGRAM/modelo%20foto%20instagram.svg');background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;border-radius:10px;margin:0;border:1px solid rgba(255,255,255,0.85);box-shadow:0 14px 30px rgba(0,0,0,.18), 0 4px 10px rgba(0,0,0,.12);overflow:hidden;">
+              <div class="ig-top" style="position:absolute;left:2mm;top:1mm;right:2mm;height:12mm;display:flex;align-items:center;gap:1.5mm;">
+                <div id="figBadge" class="ig-badge" style="width:8mm;height:8mm;box-sizing:border-box;border-radius:999px;overflow:hidden;background:linear-gradient(135deg,#9333ea,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:pointer;pointer-events:auto;"></div>
+                <div style="display:flex;align-items:center;gap:0.5mm;">
+                  <div id="figUser" style="font-weight:600;font-size:11px">@Nome_usuário</div>
+                  <div title="verificado" style="width:4mm;height:4mm;display:flex;align-items:center;justify-content:center;">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" style="width:100%;height:100%">
+                      <path d="M12 2l2.5 3.5 4-1-1 4 3.5 2.5-3.5 2.5 1 4-4-1-2.5 3.5-2.5-3.5-4 1 1-4-3.5-2.5 3.5-2.5-1-4 4 1z" fill="#1DA1F2"/>
+                      <path d="M9.5 12l2.2 2.2 4.3-4.3" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:1mm;">
+                  <div class="pill" style="border:1px solid #999;border-radius:999px;padding:4px;color:#111;font-size:10px;letter-spacing:-0.2px;background:#f3f4f6">@imantados</div>
+                  <div class="menu" aria-label="mais">⋯</div>
+                </div>
+              </div>
+              <div id="figPhoto" class="ig-photo" style="position:absolute;left:50%;top:calc(50% - 2mm);transform:translate(-50%,-50%);width:60mm;height:70mm;border-radius:6mm;background:#f97316;display:grid;place-items:center;overflow:hidden;cursor:pointer;">
+                <div style="color:#2f2f2f;font-size:16px;text-align:center;line-height:1.3">foto<br>usuario</div>
+              </div>
+              <div class="ig-bottom" style="position:absolute;left:2mm;right:2mm;top:calc(50% - 2mm + 35mm + 1.5mm);height:6mm;display:flex;justify-content:center;gap:1mm;align-items:center;z-index:2;">
+                <div style="display:flex;align-items:center;gap:1mm;color:#111;font-size:11px;">
+                  <div style="display:flex;align-items:center;gap:2mm">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4.7-3.6-7.5-6.2-8.6-8.6C2.2 9.8 3.7 7 6.5 7c1.7 0 3 .9 3.7 2.1C10.9 7.9 12.2 7 13.9 7c2.8 0 4.3 2.8 3.1 5.4C16 14.8 12 17.8 12 21z"/></svg>
+                    <span>5.864</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:2mm">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14a7 7 0 0 1-7 7H9l-4 2 2-4A7 7 0 1 1 21 7v7z"/></svg>
+                    <span>328</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:2mm">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h8l-2-2M17 17H9l2 2"/><path d="M7 12a5 5 0 0 1 5-5"/><path d="M17 12a5 5 0 0 1-5 5"/></svg>
+                    <span>30</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:2mm">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-6-8-4z"/></svg>
+                    <span>1.624</span>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#111" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
+                </div>
+              </div>
+              <div id="figMessage" class="ig-message" style="position:absolute;left:2mm;right:2mm;top:calc(50% - 2mm + 35mm + 1.5mm + 6mm);color:#111;font-size:12px;white-space:pre-line;overflow:hidden;text-align:center;z-index:1;">Mensagem do Cliente aqui....</div>
+            </div>
+          </div>
+          <form class="x-form" autocomplete="off">
+            <input id="figUserInput" type="text" placeholder="@Nome_usuário" value="@Nome_usuário">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <textarea id="figCaption" rows="2" placeholder="Mensagem do Cliente aqui....">Mensagem do Cliente aqui....</textarea>
+              <span id="figCaptionCounter" style="font-size:11px;color:#374151;white-space:nowrap">Digitados 0 · Faltam 60</span>
+            </div>
+          </form>
+          <div class="upload-actions" style="display:flex;flex-direction:column;gap:8px;align-items:flex-start;justify-content:flex-start;padding:6px 16px 12px;">
+            <input id="figBadgeFile" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;left:-9999px;">
+            <input id="figPhotoFile" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;left:-9999px;">
+            <label class="btn btn-light" for="figBadgeFile">Carregar avatar do selo</label>
+            <label class="btn btn-light" for="figPhotoFile">Carregar foto/avatar (56mm x 70mm)</label>
+          </div>
+          </div>
+        <div class="x-actions" style="justify-content:flex-start">
+          <button class="btn btn-light" type="button" id="figCancel">Cancelar</button>
+          <button class="btn btn-primary" type="button" id="figAdd">Adicionar ao palco</button>
+          <button class="btn btn-primary" type="button" id="figAddPhoto">Adicionar foto ao palco</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = () => { try { window.__skipCategoryModal__ = Date.now() + 2000; } catch {} overlay.remove(); };
+    overlay.querySelector('.modal-close').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); close(); });
+    overlay.querySelector('#figCancel').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); close(); });
+
+    overlay.querySelector('#figAdd').addEventListener('click', async (e) => {
+      e.preventDefault(); e.stopPropagation();
       try {
         await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
-        const el = overlay.querySelector('#igCard');
-        const canvas = await window.html2canvas(el, { backgroundColor: '#ffffff', scale: window.devicePixelRatio || 1 });
+        const el = overlay.querySelector('#figCard') || overlay.querySelector('#igCard');
+        const canvas = await window.html2canvas(el, { backgroundColor: null, scale: 1, useCORS: true });
         const dataUrl = canvas.toDataURL('image/png');
-        await addImageFromUrl(dataUrl);
+        window.__lastFIGCardOptions__ = { targetWidthCm: 14 };
+        await window.addImageFromUrl(dataUrl);
+        try { const st = document.getElementById('stage'); st && st.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
         const catModal = document.getElementById('categoryModal');
         if (catModal) { catModal.classList.add('visually-hidden'); catModal.setAttribute('aria-hidden','true'); }
         close();
       } catch { close(); }
     });
+
+    const btnAddPhoto = overlay.querySelector('#figAddPhoto');
+    if (btnAddPhoto) btnAddPhoto.addEventListener('click', async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try {
+        const imgEl = overlay.querySelector('#figPhoto img');
+        let url = imgEl && imgEl.src ? imgEl.src : '';
+        if (!url) {
+          const fileInput = overlay.querySelector('#figPhotoFile');
+          const f = fileInput && fileInput.files && fileInput.files[0];
+          if (f) url = URL.createObjectURL(f);
+        }
+        if (!url) { showToast('Carregue uma foto antes.'); return; }
+        await window.addImageFromUrl(url);
+        try { const st = document.getElementById('stage'); st && st.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
+        const catModal = document.getElementById('categoryModal');
+        if (catModal) { catModal.classList.add('visually-hidden'); catModal.setAttribute('aria-hidden','true'); }
+        close();
+      } catch { close(); }
+    });
+
+    const bind = (sel, cb) => { const el = overlay.querySelector(sel); if (el) el.addEventListener('input', cb); };
+    const inUserEl = overlay.querySelector('#figUserInput'); if (inUserEl) { inUserEl.setAttribute('maxlength','12'); const sLen = Math.max(((inUserEl.value||'').length), ((inUserEl.placeholder||'').length), 1); inUserEl.setAttribute('size', String(sLen)); inUserEl.style.width = `${sLen}ch`; }
+    const inCaptionEl = overlay.querySelector('#figCaption'); if (inCaptionEl) { inCaptionEl.setAttribute('maxlength','60'); inCaptionEl.setAttribute('rows','2'); inCaptionEl.setAttribute('wrap','off'); const raw = (inCaptionEl.value||'').replace(/\r?\n/g,'').slice(0,60); const l1 = raw.slice(0,30); const l2 = raw.slice(30,60); const shaped = l2 ? l1+'\n'+l2 : l1; inCaptionEl.value = shaped; const maxLen = Math.min(30, Math.max(l1.length, l2.length || 0) || 1); inCaptionEl.style.width = `${maxLen}ch`; const cc = overlay.querySelector('#figCaptionCounter'); if (cc) { const typed = raw.length; const remain = 60 - typed; cc.textContent = `Digitados ${typed} · Faltam ${remain}`; } }
+    bind('#figUserInput', (e) => { let v = e.target.value || '@Nome_usuário'; v = v.slice(0,12); const h=overlay.querySelector('#figUser'); if (h) h.textContent=v; const ch = Math.max(v.length, (e.target.placeholder||'').length, 1); e.target.setAttribute('size', String(ch)); e.target.style.width = `${ch}ch`; });
+    const formatCaption = (s) => { const clean=(s||'').replace(/\r?\n/g,'').slice(0,60); const l1=clean.slice(0,30); const l2=clean.slice(30,60); return l2 ? l1+'\n'+l2 : l1; };
+    bind('#figCaption', (e) => { const val=formatCaption(e.target.value||''); e.target.value=val; const parts = val.split('\n'); const maxLen = Math.min(30, Math.max(parts[0]?.length||0, parts[1]?.length||0) || 1); e.target.style.width = `${maxLen}ch`; const m=overlay.querySelector('#figMessage'); if (m) { m.textContent = val; m.style.whiteSpace = 'pre-line'; } const cc = overlay.querySelector('#figCaptionCounter'); if (cc) { const typed = val.replace(/\n/g,'').length; const remain = 60 - typed; cc.textContent = `Digitados ${typed} · Faltam ${remain}`; } });
+    const inPhoto = overlay.querySelector('#figPhotoFile');
+    if (inPhoto) {
+      inPhoto.addEventListener('change', async () => {
+        const f = inPhoto.files && inPhoto.files[0];
+        if (!f) return;
+        const url = URL.createObjectURL(f);
+        const ph = overlay.querySelector('#figPhoto');
+        ph.innerHTML = `<img src="${url}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
+      });
+    }
+    const inBadge = overlay.querySelector('#figBadgeFile');
+    if (inBadge) {
+      inBadge.disabled = false;
+      inBadge.addEventListener('change', async () => {
+        const f = inBadge.files && inBadge.files[0];
+        if (!f) return;
+        const url = URL.createObjectURL(f);
+        const bd = overlay.querySelector('#figBadge');
+        bd.innerHTML = `<img src="${url}" alt="selo" style="display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+      });
+    }
+    const bdEl = overlay.querySelector('#figBadge'); bdEl && bdEl.addEventListener('click', () => { try { const i = overlay.querySelector('#figBadgeFile'); i && i.click(); } catch {} });
+    const phEl = overlay.querySelector('#figPhoto'); phEl && phEl.addEventListener('click', () => { try { const i = overlay.querySelector('#figPhotoFile'); i && i.click(); } catch {} });
   }
