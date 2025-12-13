@@ -16,6 +16,23 @@
     return null;
   };
 
+  const getRejectMessage = (statusDetail) => {
+    const messages = {
+      'cc_rejected_insufficient_amount': 'Saldo insuficiente no cartão. Tente outro cartão.',
+      'cc_rejected_bad_filled_card_number': 'Número do cartão incorreto. Verifique os dados.',
+      'cc_rejected_bad_filled_date': 'Data de validade incorreta. Verifique o cartão.',
+      'cc_rejected_bad_filled_security_code': 'CVV incorreto. Verifique o código de segurança.',
+      'cc_rejected_bad_filled_other': 'Dados do cartão incorretos. Revise as informações.',
+      'cc_rejected_call_for_authorize': 'Entre em contato com seu banco para autorizar.',
+      'cc_rejected_blacklist': 'Cartão bloqueado. Entre em contato com seu banco.',
+      'cc_rejected_high_risk': 'Pagamento recusado por segurança. Tente outro método.',
+      'cc_rejected_invalid_installments': 'Número de parcelas inválido.',
+      'cc_rejected_max_attempts': 'Limite de tentativas excedido. Aguarde e tente novamente.',
+      'cc_rejected_other_reason': 'Pagamento recusado pelo banco. Tente outro cartão.'
+    };
+    return messages[statusDetail] || 'Pagamento recusado. Verifique os dados do cartão.';
+  };
+
   let cart = []; let shipping = null; let order = null;
   try { cart = JSON.parse(localStorage.getItem('emojiCart') || '[]'); } catch {}
   try { shipping = JSON.parse(localStorage.getItem('shippingInfo') || 'null'); } catch {}
@@ -222,10 +239,40 @@
       const headers = { 'Content-Type': 'application/json' };
       const res = await fetch(`${API_BASE}/mp-process-payment`, { method: 'POST', headers, body: JSON.stringify({ formData, order: orderPayload }) });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Erro no pagamento');
-      window.location.href = '/confirmacao.html?payment_id=' + encodeURIComponent(data?.id || '');
+      
+      // Verificar erro de HTTP primeiro
+      if (!res.ok) {
+        throw new Error(data?.error || 'Erro no pagamento');
+      }
+      
+      // Verificar status do pagamento retornado pelo Mercado Pago
+      const paymentStatus = data.status;
+      const statusDetail = data.status_detail;
+      
+      console.log('💳 Status do pagamento:', paymentStatus, statusDetail);
+      
+      if (paymentStatus === 'approved') {
+        // Pagamento aprovado - redireciona normalmente
+        window.location.href = '/confirmacao.html?payment_id=' + encodeURIComponent(data.id) + '&status=approved';
+        
+      } else if (paymentStatus === 'rejected') {
+        // Pagamento recusado - mostra erro e não redireciona
+        const errorMsg = getRejectMessage(statusDetail);
+        throw new Error(errorMsg);
+        
+      } else if (paymentStatus === 'in_analysis') {
+        // Pagamento em análise - redireciona com status específico
+        window.location.href = '/confirmacao.html?payment_id=' + encodeURIComponent(data.id) + '&status=in_analysis';
+        
+      } else {
+        // Outros status (pending, in_process, authorized) - redireciona
+        window.location.href = '/confirmacao.html?payment_id=' + encodeURIComponent(data.id) + '&status=' + encodeURIComponent(paymentStatus);
+      }
+      
     } catch (e) {
-      msgEl.textContent = 'Falha no pagamento. Verifique número, validade, CVV e documento.'; msgEl.style.color = '#dc2626';
+      console.error('❌ Erro no pagamento:', e);
+      msgEl.textContent = e.message || 'Falha no pagamento. Verifique os dados do cartão.';
+      msgEl.style.color = '#dc2626';
       if (btnPay) btnPay.disabled = false;
     }
   }
