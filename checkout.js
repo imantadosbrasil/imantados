@@ -448,17 +448,6 @@
               }
             } catch (err) {}
           }
-          if (provider === 'stripe') {
-            try {
-              const res = await fetch('/api/stripe-checkout', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order)
-              });
-              if (res.ok) {
-                const data = await res.json();
-                if (data.url) { window.location.href = data.url; return; }
-              }
-            } catch (err) {}
-          }
           window.location.href = '/confirmacao.html';
           return;
         }
@@ -511,19 +500,6 @@
           const data = await res.json();
           const url = data.init_point || data.sandbox_init_point || data.href;
           if (url) { window.location.href = url; return; }
-        }
-      } catch (err) { /* fallback abaixo */ }
-    }
-
-    // Stripe – cria sessão de Checkout (cartão, Pix; Apple Pay aparece quando habilitado)
-    if (provider === 'stripe') {
-      try {
-        const res = await fetch('/api/stripe-checkout', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order)
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.url) { window.location.href = data.url; return; }
         }
       } catch (err) { /* fallback abaixo */ }
     }
