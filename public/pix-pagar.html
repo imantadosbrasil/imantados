@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pague via Pix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,sans-serif;background:#f3f4f6;color:#111827;margin:0}
+      .container{max-width:860px;margin:24px auto;padding:0 12px}
+      .hero{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px}
+      .hero .title{font-weight:700}
+      .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-top:12px}
+      .card-header{padding:12px;border-bottom:1px solid #e5e7eb;font-weight:600}
+      .card-body{padding:16px}
+      .qr{width:220px;height:220px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa}
+      .code-box{display:flex;gap:8px;align-items:center;margin-top:12px}
+      .code-input{flex:1;height:38px;padding:0 8px;border:1px solid #e5e7eb;border-radius:8px}
+      .btn{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;cursor:pointer;font-weight:600}
+      .btn-primary{background:#2563eb;color:#fff}
+      .note{font-size:12px;color:#6b7280}
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <div class="hero">
+        <div style="width:36px;height:36px;border-radius:18px;background:#e0f2fe;display:flex;align-items:center;justify-content:center">
+          <span style="font-size:20px">💳</span>
+        </div>
+        <div>
+          <div class="title" id="hero-title">Pague via Pix para concluir sua compra</div>
+          <div class="note" id="hero-sub">Falta pouco!</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Escaneie um código QR para pagar</div>
+        <div class="card-body">
+          <ol class="note" style="margin:0 0 12px 16px">
+            <li>Acesse seu Internet Banking ou app de pagamentos.</li>
+            <li>Escolha pagar via Pix.</li>
+            <li>Escaneie o seguinte código:</li>
+          </ol>
+          <img id="pix-qr" class="qr" alt="QR Code Pix" />
+          <div class="note" style="margin-top:12px">Pague e será creditado na hora.</div>
+          <div id="pix-msg" class="note" style="margin-top:8px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Ou copie este código para fazer o pagamento</div>
+        <div class="card-body">
+          <div class="code-box">
+            <input id="pix-code" class="code-input" type="text" readonly />
+            <button id="btn-copy" class="btn">Copiar código</button>
+          </div>
+          <div style="margin-top:12px">
+            <a href="confirmacao.html" class="btn btn-primary">Ir para Minhas compras</a>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script src="scripts/pix-pagar.js"></script>
+  </body>
+  </html>
