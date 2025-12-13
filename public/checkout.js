@@ -15,11 +15,11 @@
       if (!MP_PUBLIC_KEY) {
         const r = await fetch('/api/mp-config');
         const j = await r.json();
-        MP_PUBLIC_KEY = j.public_key || 'TEST-fa34b6f1-e0c0-4c60-b0e8-249c52a3c616';
+        MP_PUBLIC_KEY = j.public_key || 'APP_USR-8678873e-c851-468c-9dcd-c50dd3cc0f7a';
       }
       if (window.MercadoPago) { mp = new window.MercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' }); window.mp = mp; }
     } catch {
-      if (window.MercadoPago) { mp = new window.MercadoPago(MP_PUBLIC_KEY || 'TEST-fa34b6f1-e0c0-4c60-b0e8-249c52a3c616', { locale: 'pt-BR' }); window.mp = mp; }
+      if (window.MercadoPago) { mp = new window.MercadoPago(MP_PUBLIC_KEY || 'APP_USR-8678873e-c851-468c-9dcd-c50dd3cc0f7a', { locale: 'pt-BR' }); window.mp = mp; }
     }
   }
   initMP();
