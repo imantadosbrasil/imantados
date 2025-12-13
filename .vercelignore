@@ -1,7 +1,12 @@
 node_modules
-build
-dist
 .git
-.trae
-.log
-.figma
+.env
+.env.*
+*.log
+.DS_Store
+.vscode
+.idea
+
+# Local dev only
+server.js
+preview-server.js
