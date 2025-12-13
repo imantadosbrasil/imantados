@@ -5,10 +5,10 @@
       "maxDuration": 10
     }
   },
-  "cleanUrls": true,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/", "has": [{"type": "query", "key": "topic"}], "destination": "/api/mp-webhook" }
+    { "source": "/", "has": [{"type": "query", "key": "topic"}], "destination": "/api/mp-webhook" },
+    { "source": "/(.*)", "destination": "/$1.html" }
   ],
   "headers": [
     {
